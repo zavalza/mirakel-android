@@ -89,11 +89,12 @@ public class Login extends Activity {
 				+ "id integer not null primary key,"
 				+ "email string(255) not null,"
 				+ "encrypted_password string(255) not null,"
-				+ "remember_me boolean );"
-				+ "CREATE TABLE IF NOT EXISTS settings("
-				+ "server_url string(255),"
-				+ "id integer not null primary key);";
+				+ "remember_me boolean );";
 		db.execSQL(create_table);
+		String create_settings = "CREATE TABLE IF NOT EXISTS settings("
+				+ "server_url string(255),"
+				+ "id int not null primary key);";
+		db.execSQL(create_settings);
 
 		String select = "Select server_url From settings;";
 		Cursor c = db.rawQuery(select, null);

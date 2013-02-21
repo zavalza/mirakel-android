@@ -81,16 +81,17 @@ public class MainActivity extends Activity {
 				+ "id integer not null primary key," + "name string(255),"
 				+ "user_id interger," + "created_at datetime not null,"
 				+ "updated_at datetime not null," + "parent_id  integer,"
-				+ "lft integer," + "rgt integer);"
-				+ "CREATE TABLE IF NOT EXISTS tasks("
+				+ "lft integer," + "rgt integer);";
+		db.execSQL(create_tables);
+		final String create_tasks = "CREATE TABLE IF NOT EXISTS tasks("
 				+ "id integer not null primary key," + "name string(255),"
-				+ "content string(255)," + "done boolean default(FALSE),"
+				+ "content string(255)," + "done boolean default(0),"
 				+ "due date," + "list_id integer,"
 				+ "created_at datetime not null,"
 				+ "updated_at datetime not null," + "parent_id integer,"
 				+ "lft integer," + "rgt integer,"
 				+ "priority integer default(0));";
-		db.execSQL(create_tables);
+		db.execSQL(create_tasks);
 		String stringUrl = Server_url + "/lists.json";
 		ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
