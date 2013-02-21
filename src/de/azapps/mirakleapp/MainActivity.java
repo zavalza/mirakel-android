@@ -14,32 +14,30 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.FrameLayout;
+import android.view.View.OnLongClickListener;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.TableLayout;
 import android.widget.TextView;
-import android.widget.FrameLayout.LayoutParams;
-
 import com.google.gson.Gson;
 
 public class MainActivity extends Activity {
 
-	private SQLiteDatabase db;// SQLite Database
+	protected SQLiteDatabase db;// SQLite Database
 
 	private String Email; 
 	private String password;
@@ -61,12 +59,48 @@ public class MainActivity extends Activity {
 			show_tasks();
 		}
 	}; 
+	private EditText input ;
+	private MainActivity main;
 	
+	final OnLongClickListener change_name = new OnLongClickListener() {
+		
+		@Override
+		public boolean onLongClick(View v) {
+			// TODO Auto-generated method stub
+			Log.e("EVENT","Long Click");
+			input=new EditText(main);
+			input.setText(((TextView)((RelativeLayout)v).getChildAt(0)).getText());
+			input.setTag(main);
+			final int id=(Integer)((RelativeLayout)v).getTag();
+			new AlertDialog.Builder(main)
+		    .setTitle("Change Title")
+		    .setMessage("New List-Title")
+		    .setView(input)
+		    .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+		        public void onClick(DialogInterface dialog, int whichButton) {
+		            String value = input.getText().toString();
+		            String update="Update lists set name='"+value+"' where id='"+id+"';";
+		            Log.e("QUERY",update);
+		            db.execSQL(update);
+		            show_lists();
+		        }
+		    }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+		        public void onClick(DialogInterface dialog, int whichButton) {
+		            // Do nothing.
+		        }
+		    }).show();
+			return false;
+		}
+	}; 
 
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		//input=new EditText(this);
+		main=this;
+		//alert=new AlertDialog.Builder(this);
+		//alert.setView(input);
 		setContentView(R.layout.activity_main);
 		((TextView)findViewById(R.id.all_lists)).setOnClickListener(cellTouch);
 		((TextView)findViewById(R.id.all_lists)).setTag(-1);
@@ -112,12 +146,12 @@ public class MainActivity extends Activity {
 		show_tasks();
 	}
 
-	private void show_lists() {
+	protected void show_lists() {
+		Log.e("DEBUG","Show lists "+((LinearLayout)lists).getChildCount());
 		int list_count;
-		if((list_count=((LinearLayout) task_list).getChildCount()) > 1) {
-		    //((LinearLayout) task_list).re  removeAllViews();
+		if((list_count=((LinearLayout)lists).getChildCount()) > 1) {
 			for(int i=1;i<list_count;i++){
-				((LinearLayout) task_list).removeViewAt(i);
+				((LinearLayout) lists).removeViewAt(1);
 			}
 		}
 		
@@ -132,7 +166,7 @@ public class MainActivity extends Activity {
 			int[] child={0};
 			List_json t = new List_json(c.getInt(0), c.getString(1), c.getInt(2), c.getString(3), c.getString(4), child);
 			shown_lists.add(t);
-			shown_lists.get(i).show(this, lists,cellTouch);
+			shown_lists.get(i).show(this, lists,cellTouch,change_name);
 			c.moveToNext();
 		}
 		

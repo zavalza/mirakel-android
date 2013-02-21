@@ -6,6 +6,7 @@ package de.azapps.mirakleapp;
 import android.graphics.Color;
 import android.view.Gravity;
 import android.view.View.OnClickListener;
+import android.view.View.OnLongClickListener;
 import android.widget.FrameLayout;
 import android.widget.FrameLayout.LayoutParams;
 import android.widget.LinearLayout;
@@ -40,7 +41,7 @@ public class List_json {
 	}
 
 	public void show(MainActivity main, LinearLayout lists,
-			OnClickListener cellTouch) {
+			OnClickListener cellTouch, OnLongClickListener change_name) {
 		FrameLayout border = new FrameLayout(main);
 		border.setBackgroundColor(Color.BLACK);
 		border.setPadding(4, 4, 4, 4);
@@ -69,6 +70,7 @@ public class List_json {
 		name.setText(this.name);
 		box.setTag(id);
 		box.setOnClickListener(cellTouch);
+		box.setOnLongClickListener(change_name);
 
 		box.addView(name);
 
