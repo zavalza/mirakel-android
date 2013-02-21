@@ -6,6 +6,7 @@ package de.azapps.mirakleapp;
 import android.graphics.Color;
 import android.view.Gravity;
 import android.widget.CheckBox;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.FrameLayout;
 import android.widget.FrameLayout.LayoutParams;
 import android.widget.LinearLayout;
@@ -44,7 +45,7 @@ public class Task {
 	public Task() {
 	}
 
-	public void show(MainActivity main, LinearLayout task_list) {
+	public void show(MainActivity main, LinearLayout task_list, OnCheckedChangeListener check_change) {
 		FrameLayout border = new FrameLayout(main);
 		border.setBackgroundColor(Color.BLACK);
 		border.setPadding(4, 4, 4, 2);
@@ -87,6 +88,8 @@ public class Task {
 		done.setWidth(10);
 		done.setLayoutParams(new TableLayout.LayoutParams(
 				LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, 1f));
+		done.setOnCheckedChangeListener(check_change);
+		done.setTag(id);
 
 		box.addView(done);
 		box.addView(prio);

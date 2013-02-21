@@ -29,6 +29,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
+import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -52,13 +54,23 @@ public class MainActivity extends Activity {
 		
 		@Override
 		public void onClick(View v) {
-			// TODO Auto-generated method stub
-			//set_list_id(id);
-			Log.e("ID", v.getTag()+"");
 			list_id=(Integer) v.getTag();
 			show_tasks();
 		}
 	}; 
+	final OnCheckedChangeListener check_changer =new OnCheckedChangeListener() {
+		
+		@Override
+		public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+			//Log.e("Check Changed",isChecked+"");
+			//Log.e("Tag",buttonView.getTag()+"");
+			String update="Update tasks set done='"+isChecked+"' where id='"+buttonView.getTag()+"';";
+            //Log.e("QUERY",update);
+            db.execSQL(update);
+            show_tasks();
+			
+		}
+	};
 	private EditText input ;
 	private MainActivity main;
 	
@@ -66,8 +78,6 @@ public class MainActivity extends Activity {
 		
 		@Override
 		public boolean onLongClick(View v) {
-			// TODO Auto-generated method stub
-			Log.e("EVENT","Long Click");
 			input=new EditText(main);
 			input.setText(((TextView)((RelativeLayout)v).getChildAt(0)).getText());
 			input.setTag(main);
@@ -80,7 +90,6 @@ public class MainActivity extends Activity {
 		        public void onClick(DialogInterface dialog, int whichButton) {
 		            String value = input.getText().toString();
 		            String update="Update lists set name='"+value+"' where id='"+id+"';";
-		            Log.e("QUERY",update);
 		            db.execSQL(update);
 		            show_lists();
 		        }
@@ -172,7 +181,7 @@ public class MainActivity extends Activity {
 		
 	}
 
-	private void show_tasks() {
+	protected void show_tasks() {
 		// TODO implement Done/undone list
 		if(((LinearLayout) task_list).getChildCount() > 0) 
 		    ((LinearLayout) task_list).removeAllViews(); 
@@ -192,7 +201,7 @@ public class MainActivity extends Activity {
 					c.getString(1), c.getString(7), c.getInt(0), c.getInt(5),
 					c.getInt(11), done);
 			shown_tasks.add(t);
-			shown_tasks.get(i).show(this, task_list);
+			shown_tasks.get(i).show(this, task_list,check_changer);
 			c.moveToNext();
 		}
 	}
