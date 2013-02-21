@@ -33,6 +33,7 @@ import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.NumberPicker;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import com.google.gson.Gson;
@@ -59,23 +60,49 @@ public class MainActivity extends Activity {
 		}
 	}; 
 	final OnCheckedChangeListener check_changer =new OnCheckedChangeListener() {
-		
 		@Override
 		public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-			//Log.e("Check Changed",isChecked+"");
-			//Log.e("Tag",buttonView.getTag()+"");
 			String update="Update tasks set done='"+isChecked+"' where id='"+buttonView.getTag()+"';";
-            //Log.e("QUERY",update);
             db.execSQL(update);
             show_tasks();
+		}
+	};
+	
+	final OnClickListener prio_popup =new OnClickListener() {
+		@Override
+		public void onClick(View v) {
+			picker=new NumberPicker(main);
+			picker.setMaxValue(4);
+			picker.setMinValue(0);
+			String[] t={"-2","-1","0","1","2"};
+			picker.setDisplayedValues(t);
+			picker.setWrapSelectorWheel(false);
+			picker.setValue(Integer.parseInt(((TextView)v).getText().toString())+2);
+			final int id=(Integer)v.getTag();
+			new AlertDialog.Builder(main)
+		    .setTitle("Change Priority")
+		    .setMessage("New Task-Priority")
+		    .setView(picker)
+		    .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+		        public void onClick(DialogInterface dialog, int whichButton) {
+		            String update="Update tasks set priority='"+(picker.getValue()-2)+"' where id='"+id+"';";
+		            db.execSQL(update);
+		            show_tasks();
+		        }
+		    }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+		        public void onClick(DialogInterface dialog, int whichButton) {
+		            // Do nothing.
+		        }
+		    }).show();
 			
 		}
 	};
+	
 	private EditText input ;
+	private NumberPicker picker;
 	private MainActivity main;
 	
 	final OnLongClickListener change_name = new OnLongClickListener() {
-		
 		@Override
 		public boolean onLongClick(View v) {
 			input=new EditText(main);
@@ -201,7 +228,7 @@ public class MainActivity extends Activity {
 					c.getString(1), c.getString(7), c.getInt(0), c.getInt(5),
 					c.getInt(11), done);
 			shown_tasks.add(t);
-			shown_tasks.get(i).show(this, task_list,check_changer);
+			shown_tasks.get(i).show(this, task_list,check_changer,prio_popup);
 			c.moveToNext();
 		}
 	}

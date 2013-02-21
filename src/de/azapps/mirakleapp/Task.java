@@ -5,13 +5,13 @@ package de.azapps.mirakleapp;
 
 import android.graphics.Color;
 import android.view.Gravity;
+import android.view.View.OnClickListener;
 import android.widget.CheckBox;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.FrameLayout;
 import android.widget.FrameLayout.LayoutParams;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.TableLayout;
 import android.widget.TextView;
 
 /**
@@ -45,7 +45,7 @@ public class Task {
 	public Task() {
 	}
 
-	public void show(MainActivity main, LinearLayout task_list, OnCheckedChangeListener check_change) {
+	public void show(MainActivity main, LinearLayout task_list, OnCheckedChangeListener check_change, OnClickListener prio_popup) {
 		FrameLayout border = new FrameLayout(main);
 		border.setBackgroundColor(Color.BLACK);
 		border.setPadding(4, 4, 4, 2);
@@ -58,8 +58,8 @@ public class Task {
 
 		RelativeLayout box = new RelativeLayout(main);
 		RelativeLayout.LayoutParams adaptLayout = new RelativeLayout.LayoutParams(
-				RelativeLayout.LayoutParams.MATCH_PARENT,
-				RelativeLayout.LayoutParams.MATCH_PARENT);
+				RelativeLayout.LayoutParams.WRAP_CONTENT,
+				RelativeLayout.LayoutParams.WRAP_CONTENT);
 		adaptLayout.setMargins(0, 0, 0, 0);
 		box.setLayoutParams(adaptLayout);
 		box.setBackgroundColor(Color.WHITE);
@@ -67,32 +67,52 @@ public class Task {
 		// box.s
 		TextView name = new TextView(main);
 		TextView prio = new TextView(main);
-
-		name.setLayoutParams(new TableLayout.LayoutParams(
-				LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, 1f));
-		prio.setLayoutParams(new TableLayout.LayoutParams(
-				LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, 1f));
-
-		prio.setTextSize(1, 14);
-		prio.setTextColor(Color.RED);
+		
+		RelativeLayout.LayoutParams lp ;
+		lp= new RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+		lp.addRule(RelativeLayout.CENTER_HORIZONTAL);
+		name.setLayoutParams(lp);
+		lp= new RelativeLayout.LayoutParams(40, LayoutParams.WRAP_CONTENT);
+		lp.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+		prio.setLayoutParams(lp);
+		prio.setGravity(Gravity.RIGHT);
+		switch(priority){
+			case -2:
+				box.setBackgroundColor(Color.parseColor("#006400"));//Darkgreen
+				break;
+			case -1:
+				box.setBackgroundColor(Color.GREEN);
+				break;
+			case 1:
+				box.setBackgroundColor(Color.parseColor("#FF8C00"));//Orange
+				break;
+			case 2:
+				box.setBackgroundColor(Color.RED);
+				break;
+			default:
+				box.setBackgroundColor(Color.YELLOW);
+		}
+		
 		prio.setGravity(Gravity.RIGHT);
 
-		name.setTextSize(1, 14);
-		name.setGravity(Gravity.CENTER);
+		name.setTextSize(1, 20);
+		name.setGravity(Gravity.CENTER_HORIZONTAL);
 		name.setText(this.name);
 		prio.setText(this.priority + "");
+		prio.setTextSize(1, 20);
+		prio.setTag(id);
+		prio.setOnClickListener(prio_popup);
 
 		CheckBox done = new CheckBox(main);
 		done.setGravity(Gravity.LEFT);
 		done.setChecked(this.done);
 		done.setWidth(10);
-		done.setLayoutParams(new TableLayout.LayoutParams(
-				LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, 1f));
+		done.setLayoutParams(new RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
 		done.setOnCheckedChangeListener(check_change);
 		done.setTag(id);
-
-		box.addView(done);
+		
 		box.addView(prio);
+		box.addView(done);
 		box.addView(name);
 
 		border.addView(box);
