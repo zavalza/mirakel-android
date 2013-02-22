@@ -26,12 +26,15 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
+import android.view.View.OnTouchListener;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.NumberPicker;
 import android.widget.RelativeLayout;
@@ -153,16 +156,60 @@ public class MainActivity extends Activity {
 		        }
 		    }).show();
 		}
+	};
+	
+	final OnTouchListener drag_drop=new OnTouchListener() {
+		
+		@Override
+		public boolean onTouch(View v, MotionEvent event) {
+			LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) v.getLayoutParams();
+			
+            switch(event.getAction())
+            {
+               case MotionEvent.ACTION_MOVE:
+               {
+            	   int marg_left=((int)event.getRawX() - (v.getWidth()/2))>0?(int)event.getRawX() - (v.getWidth()/2):0;
+            	   if(v.getWidth()<marg_left){
+              		 String delete="Delete from tasks where id='"+v.getTag()+"';";
+              		 db.execSQL(delete);
+              		 show_tasks();
+              		 return false;
+              	 }else{
+                 	params.leftMargin = marg_left;
+                 	v.setLayoutParams(params);
+              	 }
+                 break;
+               }
+               case MotionEvent.ACTION_CANCEL:
+               case MotionEvent.ACTION_UP:
+               {
+            	 if(v.getWidth()<v.getLeft()){
+            		 String delete="Delete from tasks where id='"+v.getTag()+"';";
+            		 db.execSQL(delete);
+            		 show_tasks();
+            		 return false;
+            	 }else{
+            		params.topMargin = 0;
+                 	params.leftMargin = 0;
+                 	v.setLayoutParams(params);
+                 	break;
+            	 }
+               }
+               case MotionEvent.ACTION_DOWN:
+               {
+                v.setLayoutParams(params);
+                break;
+               }
+            }
+			return true;
+		}
 	}; 
 
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		//input=new EditText(this);
 		main=this;
-		//alert=new AlertDialog.Builder(this);
-		//alert.setView(input);
 		setContentView(R.layout.activity_main);
 		((TextView)findViewById(R.id.all_lists)).setOnClickListener(cellTouch);
 		((TextView)findViewById(R.id.all_lists)).setTag(-1);
@@ -254,7 +301,7 @@ public class MainActivity extends Activity {
 					c.getString(1), c.getString(7), c.getInt(0), c.getInt(5),
 					c.getInt(11), done);
 			shown_tasks.add(t);
-			shown_tasks.get(i).show(this, task_list,check_changer,prio_popup,change_name_task);
+			shown_tasks.get(i).show(this, task_list,check_changer,prio_popup,change_name_task,drag_drop);
 			c.moveToNext();
 		}
 	}
