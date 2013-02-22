@@ -45,7 +45,7 @@ public class Task {
 	public Task() {
 	}
 
-	public void show(MainActivity main, LinearLayout task_list, OnCheckedChangeListener check_change, OnClickListener prio_popup) {
+	public void show(MainActivity main, LinearLayout task_list, OnCheckedChangeListener check_change, OnClickListener prio_popup,OnClickListener change_name) {
 		FrameLayout border = new FrameLayout(main);
 		border.setBackgroundColor(Color.BLACK);
 		border.setPadding(4, 4, 4, 2);
@@ -69,10 +69,10 @@ public class Task {
 		TextView prio = new TextView(main);
 		
 		RelativeLayout.LayoutParams lp ;
-		lp= new RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+		lp= new RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT);
 		lp.addRule(RelativeLayout.CENTER_HORIZONTAL);
 		name.setLayoutParams(lp);
-		lp= new RelativeLayout.LayoutParams(40, LayoutParams.WRAP_CONTENT);
+		lp= new RelativeLayout.LayoutParams(50, LayoutParams.MATCH_PARENT);
 		lp.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
 		prio.setLayoutParams(lp);
 		prio.setGravity(Gravity.RIGHT);
@@ -98,6 +98,10 @@ public class Task {
 		name.setTextSize(1, 20);
 		name.setGravity(Gravity.CENTER_HORIZONTAL);
 		name.setText(this.name);
+		name.setTag(id);
+		name.setPadding(10, 0, 10, 0);
+		name.setOnClickListener(change_name);
+		
 		prio.setText(this.priority + "");
 		prio.setTextSize(1, 20);
 		prio.setTag(id);

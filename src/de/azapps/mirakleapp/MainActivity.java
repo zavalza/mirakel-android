@@ -51,6 +51,12 @@ public class MainActivity extends Activity {
 	private ArrayList<Task> shown_tasks;
 	private ArrayList<List_json> shown_lists;
 	
+	
+	private EditText input ;
+	private NumberPicker picker;
+	private MainActivity main;
+	
+	//EventListeners
 	final OnClickListener cellTouch = new OnClickListener() {
 		
 		@Override
@@ -98,17 +104,13 @@ public class MainActivity extends Activity {
 		}
 	};
 	
-	private EditText input ;
-	private NumberPicker picker;
-	private MainActivity main;
-	
 	final OnLongClickListener change_name = new OnLongClickListener() {
 		@Override
 		public boolean onLongClick(View v) {
 			input=new EditText(main);
 			input.setText(((TextView)((RelativeLayout)v).getChildAt(0)).getText());
 			input.setTag(main);
-			final int id=(Integer)((RelativeLayout)v).getTag();
+			final int id=(Integer)v.getTag();
 			new AlertDialog.Builder(main)
 		    .setTitle("Change Title")
 		    .setMessage("New List-Title")
@@ -126,6 +128,30 @@ public class MainActivity extends Activity {
 		        }
 		    }).show();
 			return false;
+		}
+	}; 
+	final OnClickListener change_name_task = new OnClickListener() {
+		@Override
+		public void onClick(View v) {
+			input=new EditText(main);
+			input.setText(((TextView)v).getText());
+			final int id=(Integer)v.getTag();
+			new AlertDialog.Builder(main)
+		    .setTitle("Change Name")
+		    .setMessage("New Task-Name")
+		    .setView(input)
+		    .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+		        public void onClick(DialogInterface dialog, int whichButton) {
+		            String value = input.getText().toString();
+		            String update="Update tasks set name='"+value+"' where id='"+id+"';";
+		            db.execSQL(update);
+		            show_tasks();
+		        }
+		    }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+		        public void onClick(DialogInterface dialog, int whichButton) {
+		            // Do nothing.
+		        }
+		    }).show();
 		}
 	}; 
 
@@ -228,7 +254,7 @@ public class MainActivity extends Activity {
 					c.getString(1), c.getString(7), c.getInt(0), c.getInt(5),
 					c.getInt(11), done);
 			shown_tasks.add(t);
-			shown_tasks.get(i).show(this, task_list,check_changer,prio_popup);
+			shown_tasks.get(i).show(this, task_list,check_changer,prio_popup,change_name_task);
 			c.moveToNext();
 		}
 	}
