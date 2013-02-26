@@ -173,17 +173,15 @@ public class MainActivity extends Activity {
 		public boolean onTouch(View v, MotionEvent event) {
 			LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) v.getLayoutParams();
 			params.width=v.getWidth();//set fix width
-			
             switch(event.getAction())
             {
                case MotionEvent.ACTION_MOVE:
                {
             	   int marg_left=((int)event.getRawX() - (v.getWidth()/2))>0?(int)event.getRawX() - (v.getWidth()/2):0;
             	   if(v.getWidth()/3<marg_left){
-            		   Log.e("Delete","Move");
               		 String delete="Delete from tasks where id='"+v.getTag()+"';";
               		 db.execSQL(delete);
-              		update_list(list_id);
+              		 update_list(list_id);
               		 show_tasks();
               		 return false;
               	 }else{
@@ -193,16 +191,11 @@ public class MainActivity extends Activity {
                  break;
                }
                case MotionEvent.ACTION_CANCEL:
-            	   //Log.e("Delete","cancle");
-            	   //break;
                case MotionEvent.ACTION_UP:
                {
             	 if(v.getWidth()/3<v.getLeft()){
-            		 Log.e("Delete","up");
             		 String delete="Delete from tasks where id='"+v.getTag()+"';";
-            		 Log.e("Query",delete);
             		 db.execSQL(delete);
-            		 Log.e("Exec","Yes");
             		 update_list(list_id);
             		 show_tasks();
             		 return false;
@@ -210,7 +203,6 @@ public class MainActivity extends Activity {
             		params.topMargin = 0;
                  	params.leftMargin = 0;
                  	v.setLayoutParams(params);
-                 	//break;
                  	return false;
             	 }
                }
@@ -270,7 +262,6 @@ public class MainActivity extends Activity {
 		shown_lists=new ArrayList<List_json>();
 		task_list = (LinearLayout) findViewById(R.id.task_list);
 		lists=(LinearLayout)findViewById(R.id.lists);
-		//TODO add do static xml
 
 		show_lists();
 		show_tasks();
@@ -285,7 +276,6 @@ public class MainActivity extends Activity {
 	}
 
 	protected void show_lists() {
-		Log.e("DEBUG","Show lists "+((LinearLayout)lists).getChildCount());
 		int list_count;
 		if((list_count=((LinearLayout)lists).getChildCount()) > 1) {
 			for(int i=1;i<list_count;i++){
@@ -307,6 +297,22 @@ public class MainActivity extends Activity {
 			shown_lists.get(i).show(this, lists,cellTouch,change_name);
 			c.moveToNext();
 		}
+		Button new_list=new Button(this);
+		
+		new_list.setText("Add List");
+		new_list.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+				String insert="Insert into lists(name,updated_at,created_at) values('New List','"+sdf.format(new Date())+"','"+sdf.format(new Date())+"');";
+				db.execSQL(insert);
+				update_list(list_id);
+				show_lists();
+			}
+		});
+		new_list.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT));
+		lists.addView(new_list);
 		
 	}
 
@@ -315,7 +321,6 @@ public class MainActivity extends Activity {
 		if(((LinearLayout) task_list).getChildCount() > 0) 
 		    ((LinearLayout) task_list).removeAllViews(); 
 		String select = "Select * from tasks";
-		Log.e("Begin","Show Tasks");
 		if (list_id != -1)
 			select += " where list_id='" + list_id + "';";
 		Cursor c = db.rawQuery(select, null);
