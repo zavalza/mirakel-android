@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
@@ -71,8 +73,10 @@ public class MainActivity extends Activity {
 	final OnCheckedChangeListener check_changer =new OnCheckedChangeListener() {
 		@Override
 		public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-			String update="Update tasks set done='"+isChecked+"' where id='"+buttonView.getTag()+"';";
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			String update="Update tasks set done='"+isChecked+"', updated_at='"+sdf.format(new Date())+"' where id='"+buttonView.getTag()+"';";
             db.execSQL(update);
+            update_list(list_id);
             show_tasks();
 		}
 	};
@@ -94,8 +98,10 @@ public class MainActivity extends Activity {
 		    .setView(picker)
 		    .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
 		        public void onClick(DialogInterface dialog, int whichButton) {
-		            String update="Update tasks set priority='"+(picker.getValue()-2)+"' where id='"+id+"';";
+		        	SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		            String update="Update tasks set priority='"+(picker.getValue()-2)+"',updated_at='"+sdf.format(new Date())+"' where id='"+id+"';";
 		            db.execSQL(update);
+		            update_list(list_id);
 		            show_tasks();
 		        }
 		    }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -120,8 +126,8 @@ public class MainActivity extends Activity {
 		    .setView(input)
 		    .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
 		        public void onClick(DialogInterface dialog, int whichButton) {
-		            String value = input.getText().toString();
-		            String update="Update lists set name='"+value+"' where id='"+id+"';";
+		            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		            String update="Update lists set name='"+input.getText().toString()+"',updated_at='"+sdf.format(new Date())+"' where id='"+id+"';";
 		            db.execSQL(update);
 		            show_lists();
 		        }
@@ -145,9 +151,10 @@ public class MainActivity extends Activity {
 		    .setView(input)
 		    .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
 		        public void onClick(DialogInterface dialog, int whichButton) {
-		            String value = input.getText().toString();
-		            String update="Update tasks set name='"+value+"' where id='"+id+"';";
+		            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		            String update="Update tasks set name='"+input.getText().toString()+"',updated_at='"+sdf.format(new Date())+"' where id='"+id+"';";
 		            db.execSQL(update);
+		            update_list(list_id);
 		            show_tasks();
 		        }
 		    }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -172,6 +179,7 @@ public class MainActivity extends Activity {
             	   if(v.getWidth()<marg_left){
               		 String delete="Delete from tasks where id='"+v.getTag()+"';";
               		 db.execSQL(delete);
+              		update_list(list_id);
               		 show_tasks();
               		 return false;
               	 }else{
@@ -186,6 +194,7 @@ public class MainActivity extends Activity {
             	 if(v.getWidth()<v.getLeft()){
             		 String delete="Delete from tasks where id='"+v.getTag()+"';";
             		 db.execSQL(delete);
+            		 update_list(list_id);
             		 show_tasks();
             		 return false;
             	 }else{
@@ -214,6 +223,8 @@ public class MainActivity extends Activity {
 		((TextView)findViewById(R.id.all_lists)).setOnClickListener(cellTouch);
 		((TextView)findViewById(R.id.all_lists)).setTag(-1);
 		Log.e("Main", "create");
+
+		//Log.e("DATETIME",strDate);
 		Bundle data = getIntent().getExtras();
 		Email = data.getString("email");
 		Server_url = data.getString("server");
@@ -253,6 +264,12 @@ public class MainActivity extends Activity {
 
 		show_lists();
 		show_tasks();
+	}
+	
+	private void update_list(int id){
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String update="Update lists set updated_at='"+sdf.format(new Date())+"' where id='"+id+"';";
+        db.execSQL(update);
 	}
 
 	protected void show_lists() {
