@@ -33,6 +33,8 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
 import android.view.View.OnTouchListener;
+import android.view.ViewGroup.LayoutParams;
+import android.widget.Button;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.CompoundButton;
 import android.widget.EditText;
@@ -170,13 +172,15 @@ public class MainActivity extends Activity {
 		@Override
 		public boolean onTouch(View v, MotionEvent event) {
 			LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) v.getLayoutParams();
+			params.width=v.getWidth();//set fix width
 			
             switch(event.getAction())
             {
                case MotionEvent.ACTION_MOVE:
                {
             	   int marg_left=((int)event.getRawX() - (v.getWidth()/2))>0?(int)event.getRawX() - (v.getWidth()/2):0;
-            	   if(v.getWidth()<marg_left){
+            	   if(v.getWidth()/3<marg_left){
+            		   Log.e("Delete","Move");
               		 String delete="Delete from tasks where id='"+v.getTag()+"';";
               		 db.execSQL(delete);
               		update_list(list_id);
@@ -189,11 +193,16 @@ public class MainActivity extends Activity {
                  break;
                }
                case MotionEvent.ACTION_CANCEL:
+            	   //Log.e("Delete","cancle");
+            	   //break;
                case MotionEvent.ACTION_UP:
                {
-            	 if(v.getWidth()<v.getLeft()){
+            	 if(v.getWidth()/3<v.getLeft()){
+            		 Log.e("Delete","up");
             		 String delete="Delete from tasks where id='"+v.getTag()+"';";
+            		 Log.e("Query",delete);
             		 db.execSQL(delete);
+            		 Log.e("Exec","Yes");
             		 update_list(list_id);
             		 show_tasks();
             		 return false;
@@ -201,7 +210,8 @@ public class MainActivity extends Activity {
             		params.topMargin = 0;
                  	params.leftMargin = 0;
                  	v.setLayoutParams(params);
-                 	break;
+                 	//break;
+                 	return false;
             	 }
                }
                case MotionEvent.ACTION_DOWN:
@@ -267,9 +277,11 @@ public class MainActivity extends Activity {
 	}
 	
 	private void update_list(int id){
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        String update="Update lists set updated_at='"+sdf.format(new Date())+"' where id='"+id+"';";
-        db.execSQL(update);
+		if(id>=0){
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	        String update="Update lists set updated_at='"+sdf.format(new Date())+"' where id='"+id+"';";
+	        db.execSQL(update);
+		}
 	}
 
 	protected void show_lists() {
@@ -303,6 +315,7 @@ public class MainActivity extends Activity {
 		if(((LinearLayout) task_list).getChildCount() > 0) 
 		    ((LinearLayout) task_list).removeAllViews(); 
 		String select = "Select * from tasks";
+		Log.e("Begin","Show Tasks");
 		if (list_id != -1)
 			select += " where list_id='" + list_id + "';";
 		Cursor c = db.rawQuery(select, null);
@@ -320,6 +333,24 @@ public class MainActivity extends Activity {
 			shown_tasks.add(t);
 			shown_tasks.get(i).show(this, task_list,check_changer,prio_popup,change_name_task,drag_drop);
 			c.moveToNext();
+		}
+		if(list_id>=0){
+			Button new_Task=new Button(this);
+			
+			new_Task.setText("Add Task");
+			new_Task.setOnClickListener(new OnClickListener() {
+				
+				@Override
+				public void onClick(View v) {
+					SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+					String insert="Insert into tasks(name,done,updated_at,created_at,priority,list_id) values('New Task','false','"+sdf.format(new Date())+"','"+sdf.format(new Date())+"','0','"+list_id+"');";
+					db.execSQL(insert);
+					update_list(list_id);
+					show_tasks();
+				}
+			});
+			new_Task.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
+			task_list.addView(new_Task);
 		}
 	}
 

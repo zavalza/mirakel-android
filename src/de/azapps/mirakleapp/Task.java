@@ -118,6 +118,7 @@ public class Task {
 		done.setTag(id);
 		
 		border.setOnTouchListener(drag);
+		//box.setOnTouchListener(drag);
 		border.setTag(id);
 		
 		box.addView(prio);
