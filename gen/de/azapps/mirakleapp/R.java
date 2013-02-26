@@ -27,6 +27,7 @@ public final class R {
         public static final int menu_forgot_password=0x7f07000d;
         public static final int menu_logout=0x7f070010;
         public static final int menu_settings=0x7f07000f;
+        public static final int menu_sorting=0x7f070011;
         public static final int password=0x7f070004;
         public static final int remember_me=0x7f070006;
         public static final int sign_in_button=0x7f070007;

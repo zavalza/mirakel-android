@@ -47,7 +47,9 @@ public class Task {
 	public Task() {
 	}
 
-	public void show(MainActivity main, LinearLayout task_list, OnCheckedChangeListener check_change, OnClickListener prio_popup,OnClickListener change_name, OnTouchListener drag) {
+	public void show(MainActivity main, LinearLayout task_list,
+			OnCheckedChangeListener check_change, OnClickListener prio_popup,
+			OnClickListener change_name, OnTouchListener drag) {
 		FrameLayout border = new FrameLayout(main);
 		border.setBackgroundColor(Color.BLACK);
 		border.setPadding(4, 4, 4, 2);
@@ -69,32 +71,33 @@ public class Task {
 		// box.s
 		TextView name = new TextView(main);
 		TextView prio = new TextView(main);
-		
-		RelativeLayout.LayoutParams lp ;
-		lp= new RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT);
+
+		RelativeLayout.LayoutParams lp;
+		lp = new RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT,
+				LayoutParams.MATCH_PARENT);
 		lp.addRule(RelativeLayout.CENTER_HORIZONTAL);
 		name.setLayoutParams(lp);
-		lp= new RelativeLayout.LayoutParams(50, LayoutParams.MATCH_PARENT);
+		lp = new RelativeLayout.LayoutParams(50, LayoutParams.MATCH_PARENT);
 		lp.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
 		prio.setLayoutParams(lp);
 		prio.setGravity(Gravity.RIGHT);
-		switch(priority){
-			case -2:
-				box.setBackgroundColor(Color.parseColor("#006400"));//Darkgreen
-				break;
-			case -1:
-				box.setBackgroundColor(Color.GREEN);
-				break;
-			case 1:
-				box.setBackgroundColor(Color.parseColor("#FF8C00"));//Orange
-				break;
-			case 2:
-				box.setBackgroundColor(Color.RED);
-				break;
-			default:
-				box.setBackgroundColor(Color.YELLOW);
+		switch (priority) {
+		case -2:
+			box.setBackgroundColor(Color.parseColor("#006400"));// Darkgreen
+			break;
+		case -1:
+			box.setBackgroundColor(Color.GREEN);
+			break;
+		case 1:
+			box.setBackgroundColor(Color.parseColor("#FF8C00"));// Orange
+			break;
+		case 2:
+			box.setBackgroundColor(Color.RED);
+			break;
+		default:
+			box.setBackgroundColor(Color.YELLOW);
 		}
-		
+
 		prio.setGravity(Gravity.RIGHT);
 
 		name.setTextSize(1, 20);
@@ -103,7 +106,7 @@ public class Task {
 		name.setTag(id);
 		name.setPadding(10, 0, 10, 0);
 		name.setOnClickListener(change_name);
-		
+
 		prio.setText(this.priority + "");
 		prio.setTextSize(1, 20);
 		prio.setTag(id);
@@ -113,14 +116,15 @@ public class Task {
 		done.setGravity(Gravity.LEFT);
 		done.setChecked(this.done);
 		done.setWidth(10);
-		done.setLayoutParams(new RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+		done.setLayoutParams(new RelativeLayout.LayoutParams(
+				LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
 		done.setOnCheckedChangeListener(check_change);
 		done.setTag(id);
-		
+
 		border.setOnTouchListener(drag);
-		//box.setOnTouchListener(drag);
+		// box.setOnTouchListener(drag);
 		border.setTag(id);
-		
+
 		box.addView(prio);
 		box.addView(done);
 		box.addView(name);

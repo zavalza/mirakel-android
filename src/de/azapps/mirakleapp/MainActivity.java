@@ -43,194 +43,231 @@ import android.widget.LinearLayout;
 import android.widget.NumberPicker;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import com.google.gson.Gson;
 
 public class MainActivity extends Activity {
 
 	protected SQLiteDatabase db;// SQLite Database
 
-	private String Email; 
+	private String Email;
 	private String password;
 	private String Server_url;
+	private String task_order;
 	private int list_id;// -1=all_lists, 0..n list_id
 	private LinearLayout task_list;
 	private LinearLayout lists;
 	private ArrayList<Task> shown_tasks;
 	private ArrayList<List_json> shown_lists;
-	
-	
-	private EditText input ;
+
+	private EditText input;
 	private NumberPicker picker;
 	private MainActivity main;
-	
-	//EventListeners
+
+	// EventListeners
 	final OnClickListener cellTouch = new OnClickListener() {
-		
+
 		@Override
 		public void onClick(View v) {
-			list_id=(Integer) v.getTag();
+			list_id = (Integer) v.getTag();
 			show_tasks();
 		}
-	}; 
-	final OnCheckedChangeListener check_changer =new OnCheckedChangeListener() {
+	};
+	final OnCheckedChangeListener check_changer = new OnCheckedChangeListener() {
 		@Override
-		public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+		public void onCheckedChanged(CompoundButton buttonView,
+				boolean isChecked) {
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-			String update="Update tasks set done='"+isChecked+"', updated_at='"+sdf.format(new Date())+"' where id='"+buttonView.getTag()+"';";
-            db.execSQL(update);
-            update_list(list_id);
-            show_tasks();
+			String update = "Update tasks set done='" + isChecked
+					+ "', updated_at='" + sdf.format(new Date())
+					+ "' where id='" + buttonView.getTag() + "';";
+			db.execSQL(update);
+			update_list(list_id);
+			show_tasks();
 		}
 	};
-	
-	final OnClickListener prio_popup =new OnClickListener() {
+
+	final OnClickListener prio_popup = new OnClickListener() {
 		@Override
 		public void onClick(View v) {
-			picker=new NumberPicker(main);
+			picker = new NumberPicker(main);
 			picker.setMaxValue(4);
 			picker.setMinValue(0);
-			String[] t={"-2","-1","0","1","2"};
+			String[] t = { "-2", "-1", "0", "1", "2" };
 			picker.setDisplayedValues(t);
 			picker.setWrapSelectorWheel(false);
-			picker.setValue(Integer.parseInt(((TextView)v).getText().toString())+2);
-			final int id=(Integer)v.getTag();
+			picker.setValue(Integer.parseInt(((TextView) v).getText()
+					.toString()) + 2);
+			final int id = (Integer) v.getTag();
 			new AlertDialog.Builder(main)
-		    .setTitle("Change Priority")
-		    .setMessage("New Task-Priority")
-		    .setView(picker)
-		    .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-		        public void onClick(DialogInterface dialog, int whichButton) {
-		        	SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		            String update="Update tasks set priority='"+(picker.getValue()-2)+"',updated_at='"+sdf.format(new Date())+"' where id='"+id+"';";
-		            db.execSQL(update);
-		            update_list(list_id);
-		            show_tasks();
-		        }
-		    }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-		        public void onClick(DialogInterface dialog, int whichButton) {
-		            // Do nothing.
-		        }
-		    }).show();
-			
+					.setTitle("Change Priority")
+					.setMessage("New Task-Priority")
+					.setView(picker)
+					.setPositiveButton("Ok",
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog,
+										int whichButton) {
+									SimpleDateFormat sdf = new SimpleDateFormat(
+											"yyyy-MM-dd HH:mm:ss");
+									String update = "Update tasks set priority='"
+											+ (picker.getValue() - 2)
+											+ "',updated_at='"
+											+ sdf.format(new Date())
+											+ "' where id='" + id + "';";
+									db.execSQL(update);
+									update_list(list_id);
+									show_tasks();
+								}
+							})
+					.setNegativeButton("Cancel",
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog,
+										int whichButton) {
+									// Do nothing.
+								}
+							}).show();
+
 		}
 	};
-	
+
 	final OnLongClickListener change_name = new OnLongClickListener() {
 		@Override
 		public boolean onLongClick(View v) {
-			input=new EditText(main);
-			input.setText(((TextView)((RelativeLayout)v).getChildAt(0)).getText());
+			input = new EditText(main);
+			input.setText(((TextView) ((RelativeLayout) v).getChildAt(0))
+					.getText());
 			input.setTag(main);
-			final int id=(Integer)v.getTag();
+			final int id = (Integer) v.getTag();
 			new AlertDialog.Builder(main)
-		    .setTitle("Change Title")
-		    .setMessage("New List-Title")
-		    .setView(input)
-		    .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-		        public void onClick(DialogInterface dialog, int whichButton) {
-		            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		            String update="Update lists set name='"+input.getText().toString()+"',updated_at='"+sdf.format(new Date())+"' where id='"+id+"';";
-		            db.execSQL(update);
-		            show_lists();
-		        }
-		    }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-		        public void onClick(DialogInterface dialog, int whichButton) {
-		            // Do nothing.
-		        }
-		    }).show();
+					.setTitle("Change Title")
+					.setMessage("New List-Title")
+					.setView(input)
+					.setPositiveButton("Ok",
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog,
+										int whichButton) {
+									SimpleDateFormat sdf = new SimpleDateFormat(
+											"yyyy-MM-dd HH:mm:ss");
+									String update = "Update lists set name='"
+											+ input.getText().toString()
+											+ "',updated_at='"
+											+ sdf.format(new Date())
+											+ "' where id='" + id + "';";
+									db.execSQL(update);
+									show_lists();
+								}
+							})
+					.setNegativeButton("Cancel",
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog,
+										int whichButton) {
+									// Do nothing.
+								}
+							}).show();
 			return false;
 		}
-	}; 
+	};
 	final OnClickListener change_name_task = new OnClickListener() {
 		@Override
 		public void onClick(View v) {
-			input=new EditText(main);
-			input.setText(((TextView)v).getText());
-			final int id=(Integer)v.getTag();
+			input = new EditText(main);
+			input.setText(((TextView) v).getText());
+			final int id = (Integer) v.getTag();
 			new AlertDialog.Builder(main)
-		    .setTitle("Change Name")
-		    .setMessage("New Task-Name")
-		    .setView(input)
-		    .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-		        public void onClick(DialogInterface dialog, int whichButton) {
-		            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		            String update="Update tasks set name='"+input.getText().toString()+"',updated_at='"+sdf.format(new Date())+"' where id='"+id+"';";
-		            db.execSQL(update);
-		            update_list(list_id);
-		            show_tasks();
-		        }
-		    }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-		        public void onClick(DialogInterface dialog, int whichButton) {
-		            // Do nothing.
-		        }
-		    }).show();
+					.setTitle("Change Name")
+					.setMessage("New Task-Name")
+					.setView(input)
+					.setPositiveButton("Ok",
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog,
+										int whichButton) {
+									SimpleDateFormat sdf = new SimpleDateFormat(
+											"yyyy-MM-dd HH:mm:ss");
+									String update = "Update tasks set name='"
+											+ input.getText().toString()
+											+ "',updated_at='"
+											+ sdf.format(new Date())
+											+ "' where id='" + id + "';";
+									db.execSQL(update);
+									update_list(list_id);
+									show_tasks();
+								}
+							})
+					.setNegativeButton("Cancel",
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog,
+										int whichButton) {
+									// Do nothing.
+								}
+							}).show();
 		}
 	};
-	
-	final OnTouchListener drag_drop=new OnTouchListener() {
-		
+
+	final OnTouchListener drag_drop = new OnTouchListener() {
+
 		@Override
 		public boolean onTouch(View v, MotionEvent event) {
-			LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) v.getLayoutParams();
-			params.width=v.getWidth();//set fix width
-            switch(event.getAction())
-            {
-               case MotionEvent.ACTION_MOVE:
-               {
-            	   int marg_left=((int)event.getRawX() - (v.getWidth()/2))>0?(int)event.getRawX() - (v.getWidth()/2):0;
-            	   if(v.getWidth()/3<marg_left){
-              		 String delete="Delete from tasks where id='"+v.getTag()+"';";
-              		 db.execSQL(delete);
-              		 update_list(list_id);
-              		 show_tasks();
-              		 return false;
-              	 }else{
-                 	params.leftMargin = marg_left;
-                 	v.setLayoutParams(params);
-              	 }
-                 break;
-               }
-               case MotionEvent.ACTION_CANCEL:
-               case MotionEvent.ACTION_UP:
-               {
-            	 if(v.getWidth()/3<v.getLeft()){
-            		 String delete="Delete from tasks where id='"+v.getTag()+"';";
-            		 db.execSQL(delete);
-            		 update_list(list_id);
-            		 show_tasks();
-            		 return false;
-            	 }else{
-            		params.topMargin = 0;
-                 	params.leftMargin = 0;
-                 	v.setLayoutParams(params);
-                 	return false;
-            	 }
-               }
-               case MotionEvent.ACTION_DOWN:
-               {
-                v.setLayoutParams(params);
-                break;
-               }
-            }
+			LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) v
+					.getLayoutParams();
+			params.width = v.getWidth();// set fix width
+			switch (event.getAction()) {
+			case MotionEvent.ACTION_MOVE: {
+				int marg_left = ((int) event.getRawX() - (v.getWidth() / 2)) > 0 ? (int) event
+						.getRawX() - (v.getWidth() / 2)
+						: 0;
+				if (v.getWidth() / 3 < marg_left) {
+					String delete = "Delete from tasks where id='" + v.getTag()
+							+ "';";
+					db.execSQL(delete);
+					update_list(list_id);
+					show_tasks();
+					return false;
+				} else {
+					params.leftMargin = marg_left;
+					v.setLayoutParams(params);
+				}
+				break;
+			}
+			case MotionEvent.ACTION_CANCEL:
+			case MotionEvent.ACTION_UP: {
+				if (v.getWidth() / 3 < v.getLeft()) {
+					String delete = "Delete from tasks where id='" + v.getTag()
+							+ "';";
+					db.execSQL(delete);
+					update_list(list_id);
+					show_tasks();
+					return false;
+				} else {
+					params.topMargin = 0;
+					params.leftMargin = 0;
+					v.setLayoutParams(params);
+					return false;
+				}
+			}
+			case MotionEvent.ACTION_DOWN: {
+				v.setLayoutParams(params);
+				break;
+			}
+			}
 			return true;
 		}
-	}; 
-
+	};
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		main=this;
+		main = this;
 		setContentView(R.layout.activity_main);
-		((TextView)findViewById(R.id.all_lists)).setOnClickListener(cellTouch);
-		((TextView)findViewById(R.id.all_lists)).setTag(-1);
+		((TextView) findViewById(R.id.all_lists)).setOnClickListener(cellTouch);
+		((TextView) findViewById(R.id.all_lists)).setTag(-1);
 		Log.e("Main", "create");
 
-		//Log.e("DATETIME",strDate);
+		// Log.e("DATETIME",strDate);
 		Bundle data = getIntent().getExtras();
 		Email = data.getString("email");
 		Server_url = data.getString("server");
-		password=data.getString("password");
+		password = data.getString("password");
 		db = openOrCreateDatabase("main.db",
 				SQLiteDatabase.CREATE_IF_NECESSARY, null);
 		final String create_tables = "CREATE TABLE IF NOT EXISTS lists("
@@ -259,70 +296,79 @@ public class MainActivity extends Activity {
 			Log.e("NetworkState", "No network connection available.");
 		}
 		shown_tasks = new ArrayList<Task>();
-		shown_lists=new ArrayList<List_json>();
+		shown_lists = new ArrayList<List_json>();
 		task_list = (LinearLayout) findViewById(R.id.task_list);
-		lists=(LinearLayout)findViewById(R.id.lists);
-
+		lists = (LinearLayout) findViewById(R.id.lists);
+		task_order = "order by id asc";
 		show_lists();
 		show_tasks();
 	}
-	
-	private void update_list(int id){
-		if(id>=0){
+
+	private void update_list(int id) {
+		if (id >= 0) {
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-	        String update="Update lists set updated_at='"+sdf.format(new Date())+"' where id='"+id+"';";
-	        db.execSQL(update);
+			String update = "Update lists set updated_at='"
+					+ sdf.format(new Date()) + "' where id='" + id + "';";
+			db.execSQL(update);
 		}
 	}
 
 	protected void show_lists() {
 		int list_count;
-		if((list_count=((LinearLayout)lists).getChildCount()) > 1) {
-			for(int i=1;i<list_count;i++){
+		if ((list_count = ((LinearLayout) lists).getChildCount()) > 1) {
+			for (int i = 1; i < list_count; i++) {
 				((LinearLayout) lists).removeViewAt(1);
 			}
 		}
-		
+
 		String select = "Select * from lists";
 		Cursor c = db.rawQuery(select, null);
 		c.moveToFirst();
 		shown_lists.clear();
 		for (int i = 0; i < c.getCount(); i++) {
 			/*
-			 * 0 id 1 name 2 user 3 created_at 4 updated_at 5 parent_id 6 lf 7 rgt 
+			 * 0 id 1 name 2 user 3 created_at 4 updated_at 5 parent_id 6 lf 7
+			 * rgt
 			 */
-			int[] child={0};
-			List_json t = new List_json(c.getInt(0), c.getString(1), c.getInt(2), c.getString(3), c.getString(4), child);
+			int[] child = { 0 };
+			List_json t = new List_json(c.getInt(0), c.getString(1),
+					c.getInt(2), c.getString(3), c.getString(4), child);
 			shown_lists.add(t);
-			shown_lists.get(i).show(this, lists,cellTouch,change_name);
+			shown_lists.get(i).show(this, lists, cellTouch, change_name);
 			c.moveToNext();
 		}
-		Button new_list=new Button(this);
-		
+		Button new_list = new Button(this);
+
 		new_list.setText("Add List");
 		new_list.setOnClickListener(new OnClickListener() {
-			
+
 			@Override
 			public void onClick(View v) {
-				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-				String insert="Insert into lists(name,updated_at,created_at) values('New List','"+sdf.format(new Date())+"','"+sdf.format(new Date())+"');";
+				SimpleDateFormat sdf = new SimpleDateFormat(
+						"yyyy-MM-dd HH:mm:ss");
+				String insert = "Insert into lists(name,updated_at,created_at) values('New List','"
+						+ sdf.format(new Date())
+						+ "','"
+						+ sdf.format(new Date()) + "');";
 				db.execSQL(insert);
-				update_list(list_id);
+				// update_list(list_id);
 				show_lists();
 			}
 		});
-		new_list.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT));
+		new_list.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT,
+				LayoutParams.MATCH_PARENT));
 		lists.addView(new_list);
-		
+
 	}
 
 	protected void show_tasks() {
 		// TODO implement Done/undone list
-		if(((LinearLayout) task_list).getChildCount() > 0) 
-		    ((LinearLayout) task_list).removeAllViews(); 
+		if (((LinearLayout) task_list).getChildCount() > 0)
+			((LinearLayout) task_list).removeAllViews();
 		String select = "Select * from tasks";
 		if (list_id != -1)
-			select += " where list_id='" + list_id + "';";
+			select += " where list_id='" + list_id + "'";
+		select += " " + task_order + ";";
 		Cursor c = db.rawQuery(select, null);
 		c.moveToFirst();
 		shown_tasks.clear();
@@ -336,25 +382,34 @@ public class MainActivity extends Activity {
 					c.getString(1), c.getString(7), c.getInt(0), c.getInt(5),
 					c.getInt(11), done);
 			shown_tasks.add(t);
-			shown_tasks.get(i).show(this, task_list,check_changer,prio_popup,change_name_task,drag_drop);
+			shown_tasks.get(i).show(this, task_list, check_changer, prio_popup,
+					change_name_task, drag_drop);
 			c.moveToNext();
 		}
-		if(list_id>=0){
-			Button new_Task=new Button(this);
-			
+		if (list_id >= 0) {
+			Button new_Task = new Button(this);
+
 			new_Task.setText("Add Task");
 			new_Task.setOnClickListener(new OnClickListener() {
-				
+
 				@Override
 				public void onClick(View v) {
-					SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-					String insert="Insert into tasks(name,done,updated_at,created_at,priority,list_id) values('New Task','false','"+sdf.format(new Date())+"','"+sdf.format(new Date())+"','0','"+list_id+"');";
+					SimpleDateFormat sdf = new SimpleDateFormat(
+							"yyyy-MM-dd HH:mm:ss");
+					String insert = "Insert into tasks(name,done,updated_at,created_at,priority,list_id) values('New Task','false','"
+							+ sdf.format(new Date())
+							+ "','"
+							+ sdf.format(new Date())
+							+ "','0','"
+							+ list_id
+							+ "');";
 					db.execSQL(insert);
 					update_list(list_id);
 					show_tasks();
 				}
 			});
-			new_Task.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
+			new_Task.setLayoutParams(new LayoutParams(
+					LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
 			task_list.addView(new_Task);
 		}
 	}
@@ -391,7 +446,8 @@ public class MainActivity extends Activity {
 			// textView.setText(result);
 		}
 
-		private String downloadUrl(String myurl) throws IOException,URISyntaxException {
+		private String downloadUrl(String myurl) throws IOException,
+				URISyntaxException {
 			// Setup Connection
 			DefaultHttpClient client = new DefaultHttpClient();
 			HttpGet request = new HttpGet();
@@ -427,11 +483,11 @@ public class MainActivity extends Activity {
 
 	private void set_lists(List_json[] fromJson) {
 		String select = "Select * from lists";
-		Cursor c=db.rawQuery(select, null);
+		Cursor c = db.rawQuery(select, null);
 		c.moveToFirst();
-		int lists_in_db=c.getCount();
-		select+=" where id='";
-		int list_server=0;
+		int lists_in_db = c.getCount();
+		select += " where id='";
+		int list_server = 0;
 		for (int i = 0; i < fromJson.length; i++) {
 			c = db.rawQuery(select + fromJson[i].id + "';", null);
 			c.moveToFirst();
@@ -453,41 +509,51 @@ public class MainActivity extends Activity {
 				// TODO Merge Lists
 			}
 		}
-		if(list_server<lists_in_db){
-			//TODO search and delete lists
+		if (list_server < lists_in_db) {
+			// TODO search and delete lists
 		}
 		show_tasks();
 	}
 
 	public void set_tasks(Task[] fromJson) {
 		String select = "Select * from tasks";
-		Cursor c=db.rawQuery(select+" where list_id='"+fromJson[0].list_id+"';", null);
+		Cursor c = db.rawQuery(select + " where list_id='"
+				+ fromJson[0].list_id + "';", null);
 		c.moveToFirst();
-		int tasks_in_db=c.getCount();
-		select+=" where id='";
-		int from_server=0;
+		int tasks_in_db = c.getCount();
+		select += " where id='";
+		int from_server = 0;
 		for (int i = 0; i < fromJson.length; i++) {
 			c = db.rawQuery(select + fromJson[i].id + "';", null);
 			c.moveToFirst();
 			if (c.getCount() == 0) {
 				String insert = "Insert into tasks(id,name,content,done,due,list_id,created_at,updated_at,priority)values('"
-						+ fromJson[i].id + "','"
-						+ fromJson[i].name + "','"
-						+ fromJson[i].content + "','"
-						+ fromJson[i].done + "','"
-						+ fromJson[i].due + "','"
-						+ fromJson[i].list_id + "','"
-						+ fromJson[i].created_at + "','"
-						+ fromJson[i].updated_at + "','"
-						+ fromJson[i].priority + "');";
+						+ fromJson[i].id
+						+ "','"
+						+ fromJson[i].name
+						+ "','"
+						+ fromJson[i].content
+						+ "','"
+						+ fromJson[i].done
+						+ "','"
+						+ fromJson[i].due
+						+ "','"
+						+ fromJson[i].list_id
+						+ "','"
+						+ fromJson[i].created_at
+						+ "','"
+						+ fromJson[i].updated_at
+						+ "','"
+						+ fromJson[i].priority
+						+ "');";
 				db.execSQL(insert);
 			} else {
 				from_server++;
 				// TODO Merge Tasks
 			}
 		}
-		if(from_server<tasks_in_db){
-			//TODO search and delete
+		if (from_server < tasks_in_db) {
+			// TODO search and delete
 		}
 
 	}
@@ -498,12 +564,36 @@ public class MainActivity extends Activity {
 		switch (item.getItemId()) {
 		case R.id.menu_settings:
 			Log.e("Menü", "Settings");
-			//TODO implement Settings
+			// TODO implement Settings
 			return true;
 		case R.id.menu_logout:
 			Log.e("Menü", "Logout");
 			logout();
 			return true;
+		case R.id.menu_sorting:
+			final CharSequence[] items = { "ID", "Due", "Priority" };
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			builder.setTitle("Change Sorting Order");
+			builder.setItems(items, new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int item) {
+					switch (item) {
+					case 1:
+						task_order = "order by due asc";
+						break;
+					case 2:
+						task_order = "order by priority desc";
+						break;
+					default:
+						task_order = "order by id asc";
+						break;
+					}
+					show_tasks();
+					Toast.makeText(getApplicationContext(), items[item],
+							Toast.LENGTH_SHORT).show();
+				}
+			});
+			AlertDialog alert = builder.create();
+			alert.show();
 		default:
 			return super.onOptionsItemSelected(item);
 		}

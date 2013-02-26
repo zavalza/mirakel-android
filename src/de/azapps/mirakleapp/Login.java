@@ -92,8 +92,7 @@ public class Login extends Activity {
 				+ "remember_me boolean );";
 		db.execSQL(create_table);
 		String create_settings = "CREATE TABLE IF NOT EXISTS settings("
-				+ "server_url string(255),"
-				+ "id int not null primary key);";
+				+ "server_url string(255)," + "id int not null primary key);";
 		db.execSQL(create_settings);
 
 		String select = "Select server_url From settings;";
