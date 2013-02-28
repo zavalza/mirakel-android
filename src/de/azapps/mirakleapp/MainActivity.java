@@ -8,12 +8,18 @@ import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -25,6 +31,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.provider.SyncStateContract.Constants;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -65,6 +72,20 @@ public class MainActivity extends Activity {
 	private NumberPicker picker;
 	private MainActivity main;
 
+	public class sync_state {
+		final public static int NOTHING = 0;
+		final public static int DELETE = -1;
+		final public static int ADD = 1;
+		final public static int NEED_SYNC = 2;
+	}
+
+	public class Http_Mode {
+		final public static int GET = 0;
+		final public static int POST = 1;
+		final public static int PUT = 2;
+		final public static int DELETE = 3;
+	}
+
 	// EventListeners
 	final OnClickListener cellTouch = new OnClickListener() {
 
@@ -78,13 +99,17 @@ public class MainActivity extends Activity {
 		@Override
 		public void onCheckedChanged(CompoundButton buttonView,
 				boolean isChecked) {
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-			String update = "Update tasks set done='" + isChecked
-					+ "', updated_at='" + sdf.format(new Date())
-					+ "' where id='" + buttonView.getTag() + "';";
+			String update = "Update tasks set done='"
+					+ isChecked
+					+ "', sync_state='"
+					+ check_sync(Integer.parseInt(buttonView.getTag()
+							.toString())) + "' where id='"
+					+ buttonView.getTag() + "';";
 			db.execSQL(update);
-			update_list(list_id);
+			update_list(get_list_id(Integer.parseInt(buttonView.getTag()
+					.toString())));
 			show_tasks();
+			sync();
 		}
 	};
 
@@ -108,17 +133,19 @@ public class MainActivity extends Activity {
 							new DialogInterface.OnClickListener() {
 								public void onClick(DialogInterface dialog,
 										int whichButton) {
-									SimpleDateFormat sdf = new SimpleDateFormat(
-											"yyyy-MM-dd HH:mm:ss");
 									String update = "Update tasks set priority='"
 											+ (picker.getValue() - 2)
-											+ "',updated_at='"
-											+ sdf.format(new Date())
-											+ "' where id='" + id + "';";
+											+ "', sync_state='"
+											+ check_sync(id)
+											+ "' where id='"
+											+ id + "';";
 									db.execSQL(update);
-									update_list(list_id);
+
+									update_list(get_list_id(id));
 									show_tasks();
+									sync();
 								}
+
 							})
 					.setNegativeButton("Cancel",
 							new DialogInterface.OnClickListener() {
@@ -147,15 +174,22 @@ public class MainActivity extends Activity {
 							new DialogInterface.OnClickListener() {
 								public void onClick(DialogInterface dialog,
 										int whichButton) {
-									SimpleDateFormat sdf = new SimpleDateFormat(
-											"yyyy-MM-dd HH:mm:ss");
+									String select = "Select sync_state from lists where id='"
+											+ id + "';";
+									int sync = sync_state.NEED_SYNC;
+									Cursor c = db.rawQuery(select, null);
+									c.moveToFirst();
+									if (c.getCount() > 0) {
+										if (c.getInt(0) == sync_state.ADD)
+											sync = sync_state.ADD;
+									}
 									String update = "Update lists set name='"
 											+ input.getText().toString()
-											+ "',updated_at='"
-											+ sdf.format(new Date())
+											+ "', sync_state='" + sync
 											+ "' where id='" + id + "';";
 									db.execSQL(update);
 									show_lists();
+									sync();
 								}
 							})
 					.setNegativeButton("Cancel",
@@ -182,16 +216,15 @@ public class MainActivity extends Activity {
 							new DialogInterface.OnClickListener() {
 								public void onClick(DialogInterface dialog,
 										int whichButton) {
-									SimpleDateFormat sdf = new SimpleDateFormat(
-											"yyyy-MM-dd HH:mm:ss");
 									String update = "Update tasks set name='"
 											+ input.getText().toString()
-											+ "',updated_at='"
-											+ sdf.format(new Date())
-											+ "' where id='" + id + "';";
+											+ "', sync_state='"
+											+ check_sync(id) + "' where id='"
+											+ id + "';";
 									db.execSQL(update);
-									update_list(list_id);
+									update_list(get_list_id(id));
 									show_tasks();
+									sync();
 								}
 							})
 					.setNegativeButton("Cancel",
@@ -217,11 +250,24 @@ public class MainActivity extends Activity {
 						.getRawX() - (v.getWidth() / 2)
 						: 0;
 				if (v.getWidth() / 3 < marg_left) {
-					String delete = "Delete from tasks where id='" + v.getTag()
-							+ "';";
-					db.execSQL(delete);
-					update_list(list_id);
+					String select = "Select sync_state from tasks where id='"
+							+ v.getTag() + "';";
+					Cursor c = db.rawQuery(select, null);
+					c.moveToFirst();
+					if (c.getInt(0) == sync_state.ADD) {
+						String delete = "Delete from tasks where id='"
+								+ v.getTag() + "';";
+						db.execSQL(delete);
+					} else {
+						String update = "Update tasks set sync_state='"
+								+ sync_state.DELETE + "' where id='"
+								+ v.getTag() + "';";
+						db.execSQL(update);
+					}
+					update_list(get_list_id(Integer.parseInt(v.getTag()
+							.toString())));
 					show_tasks();
+					sync();
 					return false;
 				} else {
 					params.leftMargin = marg_left;
@@ -232,11 +278,24 @@ public class MainActivity extends Activity {
 			case MotionEvent.ACTION_CANCEL:
 			case MotionEvent.ACTION_UP: {
 				if (v.getWidth() / 3 < v.getLeft()) {
-					String delete = "Delete from tasks where id='" + v.getTag()
-							+ "';";
-					db.execSQL(delete);
-					update_list(list_id);
+					String select = "Select sync_state from tasks where id='"
+							+ v.getTag() + "';";
+					Cursor c = db.rawQuery(select, null);
+					c.moveToFirst();
+					if (c.getInt(0) == sync_state.ADD) {
+						String delete = "Delete from tasks where id='"
+								+ v.getTag() + "';";
+						db.execSQL(delete);
+					} else {
+						String update = "Update tasks set sync_state='"
+								+ sync_state.DELETE + "' where id='"
+								+ v.getTag() + "';";
+						db.execSQL(update);
+					}
+					update_list(get_list_id(Integer.parseInt(v.getTag()
+							.toString())));
 					show_tasks();
+					sync();
 					return false;
 				} else {
 					params.topMargin = 0;
@@ -274,7 +333,8 @@ public class MainActivity extends Activity {
 				+ "id integer not null primary key," + "name string(255),"
 				+ "user_id interger," + "created_at datetime not null,"
 				+ "updated_at datetime not null," + "parent_id  integer,"
-				+ "lft integer," + "rgt integer);";
+				+ "lft integer,"
+				+ "rgt integer , sync_state integer default(0));";
 		db.execSQL(create_tables);
 		final String create_tasks = "CREATE TABLE IF NOT EXISTS tasks("
 				+ "id integer not null primary key," + "name string(255),"
@@ -283,18 +343,10 @@ public class MainActivity extends Activity {
 				+ "created_at datetime not null,"
 				+ "updated_at datetime not null," + "parent_id integer,"
 				+ "lft integer," + "rgt integer,"
-				+ "priority integer default(0));";
+				+ "priority integer default(0),"
+				+ "sync_state integer default(0));";
 		db.execSQL(create_tasks);
-		String stringUrl = Server_url + "/lists.json";
-		ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-		NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-		Log.e("Main", "created");
-		list_id = -1;
-		if (networkInfo != null && networkInfo.isConnected()) {
-			new get_data().execute(stringUrl);
-		} else {
-			Log.e("NetworkState", "No network connection available.");
-		}
+		sync();
 		shown_tasks = new ArrayList<Task>();
 		shown_lists = new ArrayList<List_json>();
 		task_list = (LinearLayout) findViewById(R.id.task_list);
@@ -304,11 +356,51 @@ public class MainActivity extends Activity {
 		show_tasks();
 	}
 
+	protected void sync() {
+		String stringUrl = Server_url + "/lists.json";
+		ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+		NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+		Log.e("Main", "created");
+		list_id = -1;
+		if (networkInfo != null && networkInfo.isConnected()) {
+			get_data temp = new get_data(Http_Mode.GET);
+			temp.execute(stringUrl);
+		} else {
+			Log.e("NetworkState", "No network connection available.");
+		}
+	}
+
+	protected int check_sync(int id) {
+		String select = "Select sync_state from tasks where id='" + id + "';";
+		Cursor c = db.rawQuery(select, null);
+		c.moveToFirst();
+		if (c.getCount() > 0) {
+			if (c.getInt(0) == sync_state.ADD)
+				return sync_state.ADD;
+		}
+		return sync_state.NEED_SYNC;
+	}
+
+	private int get_list_id(int id) {
+		String select = "Select list_id from tasks where id='" + id + "';";
+		Cursor c = db.rawQuery(select, null);
+		c.moveToFirst();
+		return (c.getCount() > 0) ? c.getInt(0) : -1;
+	}
+
 	private void update_list(int id) {
+		Log.e("Update List", id + "");
 		if (id >= 0) {
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-			String update = "Update lists set updated_at='"
-					+ sdf.format(new Date()) + "' where id='" + id + "';";
+			String select = "Select sync_state from lists where id='" + id
+					+ "';";
+			Cursor c = db.rawQuery(select, null);
+			c.moveToFirst();
+			if (c.getCount() > 0) {
+				if (c.getInt(0) == sync_state.ADD)
+					return;
+			}
+			String update = "Update lists set sync_state='"
+					+ sync_state.NEED_SYNC + "' where id='" + id + "';";
 			db.execSQL(update);
 		}
 	}
@@ -321,7 +413,8 @@ public class MainActivity extends Activity {
 			}
 		}
 
-		String select = "Select * from lists";
+		String select = "Select * from lists where not sync_state='"
+				+ sync_state.DELETE + "';";
 		Cursor c = db.rawQuery(select, null);
 		c.moveToFirst();
 		shown_lists.clear();
@@ -346,13 +439,17 @@ public class MainActivity extends Activity {
 			public void onClick(View v) {
 				SimpleDateFormat sdf = new SimpleDateFormat(
 						"yyyy-MM-dd HH:mm:ss");
-				String insert = "Insert into lists(name,updated_at,created_at) values('New List','"
+				String insert = "Insert into lists(name,updated_at,created_at,sync_state) values('New List','"
 						+ sdf.format(new Date())
 						+ "','"
-						+ sdf.format(new Date()) + "');";
+						+ sdf.format(new Date())
+						+ "','"
+						+ sync_state.ADD
+						+ "');";
 				db.execSQL(insert);
 				// update_list(list_id);
 				show_lists();
+				sync();
 			}
 		});
 		new_list.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT,
@@ -365,9 +462,11 @@ public class MainActivity extends Activity {
 		// TODO implement Done/undone list
 		if (((LinearLayout) task_list).getChildCount() > 0)
 			((LinearLayout) task_list).removeAllViews();
-		String select = "Select * from tasks";
+
+		String select = "Select * from tasks where not sync_state='"
+				+ sync_state.DELETE + "'";
 		if (list_id != -1)
-			select += " where list_id='" + list_id + "'";
+			select += " and list_id='" + list_id + "'";
 		select += " " + task_order + ";";
 		Cursor c = db.rawQuery(select, null);
 		c.moveToFirst();
@@ -396,16 +495,17 @@ public class MainActivity extends Activity {
 				public void onClick(View v) {
 					SimpleDateFormat sdf = new SimpleDateFormat(
 							"yyyy-MM-dd HH:mm:ss");
-					String insert = "Insert into tasks(name,done,updated_at,created_at,priority,list_id) values('New Task','false','"
+					String insert = "Insert into tasks(name,done,updated_at,created_at,priority,list_id,sync_state) values('New Task','false','"
 							+ sdf.format(new Date())
 							+ "','"
 							+ sdf.format(new Date())
 							+ "','0','"
 							+ list_id
-							+ "');";
+							+ "', '" + sync_state.ADD + "');";
 					db.execSQL(insert);
 					update_list(list_id);
 					show_tasks();
+					sync();
 				}
 			});
 			new_Task.setLayoutParams(new LayoutParams(
@@ -415,6 +515,18 @@ public class MainActivity extends Activity {
 	}
 
 	public class get_data extends AsyncTask<String, String, String> {
+		protected int Mode;
+		protected List<BasicNameValuePair> Header_data;
+
+		public get_data(int _mode) {
+			this.Mode = _mode;
+		}
+
+		public get_data(int _mode, List<BasicNameValuePair> params) {
+			Mode = _mode;
+			Header_data = params;
+		}
+
 		@Override
 		protected String doInBackground(String... urls) {
 
@@ -424,57 +536,119 @@ public class MainActivity extends Activity {
 			} catch (IOException e) {
 				return "Unable to retrieve web page. URL may be invalid.";
 			} catch (URISyntaxException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			return "";
 		}
 
-		// onPostExecute displays the results of the AsyncTask.
 		@Override
 		protected void onPostExecute(String result) {
-			Gson gson = new Gson();
-			Log.e("Result", result);
-			if (result.indexOf("user_id") != -1) {
-				set_lists(gson.fromJson(result, List_json[].class));
-				Log.d("Debug", "lists");
-			} else if (result.indexOf("list_id") != -1) {
-				set_tasks(gson.fromJson(result, Task[].class));
-				Log.d("Debug", "tasks");
+			switch (Mode) {
+			case Http_Mode.GET:
+				Gson gson = new Gson();
+				if (result.indexOf("user_id") != -1) {
+					set_lists(gson.fromJson(result, List_json[].class));
+				} else if (result.indexOf("list_id") != -1) {
+					set_tasks(gson.fromJson(result, Task[].class));
+				}
+				break;
+			case Http_Mode.PUT:
+				break;
+			case Http_Mode.POST:
+				gson = new Gson();
+				if (result.indexOf("user_id") != -1) {
+					List_json new_list = gson.fromJson(result, List_json.class);
+					String select = "Select id from lists where name='"
+							+ new_list.name + "' and sync_state='"
+							+ sync_state.ADD + "';";
+					Cursor c = db.rawQuery(select, null);
+					c.moveToFirst();
+					if (c.getCount() > 0) {
+						String update = "Update tasks set list_id='"
+								+ new_list.id + "' where list_id='"
+								+ c.getInt(0) + "';";
+						db.execSQL(update);
+					}
+					String update = "Update lists set sync_state='"
+							+ sync_state.NOTHING + "', id='" + new_list.id
+							+ "',updated_ad='" + new_list.updated_at
+							+ "',user_id='" + new_list.user_id
+							+ "', created_at='" + new_list.created_at
+							+ "' where sync_state='" + sync_state.ADD
+							+ "' and name='" + new_list.name + "';";
+					db.execSQL(update);
+				} else if (result.indexOf("list_id") != -1) {
+					Task new_task = gson.fromJson(result, Task.class);
+					String update = "Update tasks set sync_state='"
+							+ sync_state.NOTHING + "', id='" + new_task.id
+							+ "',updated_at='" + new_task.updated_at
+							+ "', created_at='" + new_task.created_at
+							+ "' where sync_state='" + sync_state.ADD
+							+ "' and name='" + new_task.name
+							+ "' and list_id='" + new_task.list_id + "';";
+					db.execSQL(update);
+				}
+				break;
+			case Http_Mode.DELETE:
+				break;
+			default:
+				Log.e("HTTP-MODE", "Unknown Http-Mode");
+				break;
 			}
-
-			// textView.setText(result);
 		}
 
 		private String downloadUrl(String myurl) throws IOException,
 				URISyntaxException {
-			// Setup Connection
 			DefaultHttpClient client = new DefaultHttpClient();
-			HttpGet request = new HttpGet();
-			// Log.e("Url", myurl);
-			request.setURI(new URI(myurl));
-			// Log.e("Mail", Email);
-			// Log.e("Pwd", password);
+			HttpResponse response = null;
 			client.getCredentialsProvider().setCredentials(
 					new AuthScope(null, -1),
 					new UsernamePasswordCredentials(Email, password));
-			// Get Data
-			HttpResponse response = client.execute(request);
+			switch (Mode) {
+			case Http_Mode.GET:
+				HttpGet get = new HttpGet();
+				get.setURI(new URI(myurl));
+				response = client.execute(get);
+				break;
+			case Http_Mode.PUT:
+				HttpPut put = new HttpPut();
+				put.setURI(new URI(myurl));
+				put.setEntity(new UrlEncodedFormEntity(Header_data));
+				response = client.execute(put);
+				break;
+			case Http_Mode.POST:
+				HttpPost post = new HttpPost();
+				post.setURI(new URI(myurl));
+				post.setEntity(new UrlEncodedFormEntity(Header_data));
+				response = client.execute(post);
+				break;
+			case Http_Mode.DELETE:
+				HttpDelete delete = new HttpDelete();
+				delete.setURI(new URI(myurl));
+				response = client.execute(delete);
+				break;
+			default:
+				Log.e("HTTP-MODE", "Unknown Http-Mode");
+				break;
+			}
 			int status = response.getStatusLine().getStatusCode();
 			Log.d("HTTP-Status", status + "");
 
 			// Convert the InputStream into a string
 			String data = "";
-			BufferedReader in = new BufferedReader(new InputStreamReader(
-					response.getEntity().getContent()));
-			StringBuffer sb = new StringBuffer("");
-			String l = "";
-			String nl = System.getProperty("line.separator");
-			while ((l = in.readLine()) != null) {
-				sb.append(l + nl);
-			}
-			in.close();
-			data = sb.toString();
+			if (status != 204) {// 204=no content
+				BufferedReader in = new BufferedReader(new InputStreamReader(
+						response.getEntity().getContent()));
+				StringBuffer sb = new StringBuffer("");
+				String l = "";
+				String nl = System.getProperty("line.separator");
+				while ((l = in.readLine()) != null) {
+					sb.append(l + nl);
+				}
+				in.close();
+				data = sb.toString();
+			} else
+				data += status;
 			return data;
 
 		}
@@ -482,17 +656,12 @@ public class MainActivity extends Activity {
 	}
 
 	private void set_lists(List_json[] fromJson) {
-		String select = "Select * from lists";
-		Cursor c = db.rawQuery(select, null);
-		c.moveToFirst();
-		int lists_in_db = c.getCount();
-		select += " where id='";
-		int list_server = 0;
+		String select = "Select sync_state,updated_at from lists where id='";
 		for (int i = 0; i < fromJson.length; i++) {
-			c = db.rawQuery(select + fromJson[i].id + "';", null);
+			Cursor c = db.rawQuery(select + fromJson[i].id + "';", null);
 			c.moveToFirst();
 			if (c.getCount() == 0) {
-				String insert = "Insert into lists(id,name,user_id,created_at,updated_at)values('"
+				String insert = "Insert into lists(id,name,user_id,created_at,updated_at,sync_state)values('"
 						+ fromJson[i].id
 						+ "','"
 						+ fromJson[i].name
@@ -500,34 +669,86 @@ public class MainActivity extends Activity {
 						+ fromJson[i].user_id
 						+ "','"
 						+ fromJson[i].created_at
-						+ "','" + fromJson[i].updated_at + "');";
+						+ "','"
+						+ fromJson[i].updated_at
+						+ "','"
+						+ sync_state.NOTHING + "');";
 				db.execSQL(insert);
-				new get_data().execute(Server_url + "/lists/" + fromJson[i].id
-						+ "/tasks.json");
+				new get_data(Http_Mode.GET).execute(Server_url + "/lists/"
+						+ fromJson[i].id + "/tasks.json");
 			} else {
-				list_server++;
-				// TODO Merge Lists
+				if (c.getInt(0) != sync_state.NEED_SYNC) {
+					String update = "Update lists set name='"
+							+ fromJson[i].name + "', updated_at='"
+							+ fromJson[i].updated_at + "' where id='"
+							+ fromJson[i].id + "';";
+					db.execSQL(update);
+				} else if (c.getInt(0) == sync_state.NEED_SYNC) {
+					Log.e("ERROR", "Data need update server and client");
+					// TODO Handle this
+				}
 			}
 		}
-		if (list_server < lists_in_db) {
-			// TODO search and delete lists
+		// Add
+		select = "Select id,name,updated_at from lists where sync_state='"
+				+ sync_state.ADD + "';";
+		Cursor c = db.rawQuery(select, null);
+		c.moveToFirst();
+		// 0=id,1=name,2=update_at
+		for (int i = 0; i < c.getCount(); i++) {
+			List<BasicNameValuePair> paras = new ArrayList<BasicNameValuePair>();
+			paras.add(new BasicNameValuePair("list[name]", c.getString(1)));
+			new get_data(Http_Mode.POST, paras).execute(Server_url
+					+ "/lists.json");
+			c.moveToNext();
 		}
-		show_tasks();
+
+		// Update
+		select = "Select id,name,updated_at from lists where sync_state='"
+				+ sync_state.NEED_SYNC + "';";
+		c = db.rawQuery(select, null);
+		String update = "Update lists set sync_state='" + sync_state.NOTHING
+				+ "' where sync_state='" + sync_state.NEED_SYNC + "';";
+		c.moveToFirst();
+		// 0=id,1=name,2=update_at
+		for (int i = 0; i < c.getCount(); i++) {
+			List<BasicNameValuePair> paras = new ArrayList<BasicNameValuePair>();
+			paras.add(new BasicNameValuePair("list[name]", c.getString(1)));
+			// Sync All Tasks of list
+			new get_data(Http_Mode.PUT, paras).execute(Server_url + "/lists/"
+					+ c.getString(0) + ".json");
+			new get_data(Http_Mode.GET).execute(Server_url + "/lists/"
+					+ c.getInt(0) + "/tasks.json");
+			c.moveToNext();
+		}
+
+		// Delete
+		select = "Select id from lists where sync_state='" + sync_state.DELETE
+				+ "';";
+		c = db.rawQuery(select, null);
+		c.moveToFirst();
+		String delete = "Delete from lists where sync_state='"
+				+ sync_state.DELETE + "';";
+		for (int i = 0; i < c.getCount(); i++) {
+			String del_tasks = "Delete from tasks where list_id='"
+					+ c.getInt(0) + "';";
+			db.execSQL(del_tasks);
+			new get_data(Http_Mode.DELETE).execute(Server_url + "/lists/"
+					+ c.getInt(0) + ".json");
+			c.moveToNext();
+		}
+		db.execSQL(delete);
+		db.execSQL(update);
+		show_lists();
 	}
 
 	public void set_tasks(Task[] fromJson) {
-		String select = "Select * from tasks";
-		Cursor c = db.rawQuery(select + " where list_id='"
-				+ fromJson[0].list_id + "';", null);
-		c.moveToFirst();
-		int tasks_in_db = c.getCount();
-		select += " where id='";
-		int from_server = 0;
+		String select = "Select sync_state,updated_at from tasks where id='";
 		for (int i = 0; i < fromJson.length; i++) {
-			c = db.rawQuery(select + fromJson[i].id + "';", null);
+			Cursor c = db.rawQuery(select + fromJson[i].id + "';", null);
 			c.moveToFirst();
 			if (c.getCount() == 0) {
-				String insert = "Insert into tasks(id,name,content,done,due,list_id,created_at,updated_at,priority)values('"
+				String insert = "Insert into tasks(id,name,content,done,due,list_id,created_at,updated_at,priority,sync_state)values('"
 						+ fromJson[i].id
 						+ "','"
 						+ fromJson[i].name
@@ -545,17 +766,84 @@ public class MainActivity extends Activity {
 						+ fromJson[i].updated_at
 						+ "','"
 						+ fromJson[i].priority
-						+ "');";
+						+ "','" + sync_state.NOTHING + "');";
 				db.execSQL(insert);
 			} else {
-				from_server++;
-				// TODO Merge Tasks
+				if (c.getInt(0) != sync_state.NEED_SYNC) {
+					String update = "Update tasks set name='"
+							+ fromJson[i].name + "', content='"
+							+ fromJson[i].content + "', done='"
+							+ fromJson[i].done + "', due='" + fromJson[i].due
+							+ "', updated_at='" + fromJson[i].updated_at
+							+ "', priority='" + fromJson[i].priority
+							+ "' where id='" + fromJson[i].id + "';";
+					db.execSQL(update);
+				} else if (c.getInt(0) == sync_state.NEED_SYNC) {
+					Log.e("ERROR", "Data need update server and client");
+					// TODO Handle this
+				}
 			}
+
 		}
-		if (from_server < tasks_in_db) {
-			// TODO search and delete
+		// Add
+		select = "Select id,name,done,content,due,updated_at,priority from tasks where sync_state='"
+				+ sync_state.ADD
+				+ "' and list_id='"
+				+ fromJson[0].list_id
+				+ "';";
+		Cursor c = db.rawQuery(select, null);
+		c.moveToFirst();
+		// 0=id,1=name,2=done,3=content,4=due,5=update_at,6=priority
+		for (int i = 0; i < c.getCount(); i++) {
+			List<BasicNameValuePair> paras = new ArrayList<BasicNameValuePair>();
+			paras.add(new BasicNameValuePair("task[name]", c.getString(1)));
+			paras.add(new BasicNameValuePair("task[priority]", c.getString(6)));
+			paras.add(new BasicNameValuePair("task[done]", c.getString(2)));
+			paras.add(new BasicNameValuePair("task[due]", c.getString(4)));
+			paras.add(new BasicNameValuePair("task[content]", c.getString(3)));
+			new get_data(Http_Mode.POST, paras).execute(Server_url + "/lists/"
+					+ fromJson[0].list_id + "/tasks.json");
+			c.moveToNext();
+		}
+		// update
+		select = "Select id,name,done,content,due,updated_at,priority from tasks where sync_state='"
+				+ sync_state.NEED_SYNC
+				+ "' and list_id='"
+				+ fromJson[0].list_id + "';";
+		c = db.rawQuery(select, null);
+		String update = "Update tasks set sync_state='" + sync_state.NOTHING
+				+ "' where sync_state='" + sync_state.NEED_SYNC
+				+ "' and list_id='" + fromJson[0].list_id + "';";
+		c.moveToFirst();
+		// 0=id,1=name,2=done,3=content,4=due,5=update_at,6=priority
+		for (int i = 0; i < c.getCount(); i++) {
+			List<BasicNameValuePair> paras = new ArrayList<BasicNameValuePair>();
+			paras.add(new BasicNameValuePair("task[name]", c.getString(1)));
+			paras.add(new BasicNameValuePair("task[priority]", c.getString(6)));
+			paras.add(new BasicNameValuePair("task[done]", c.getString(2)));
+			paras.add(new BasicNameValuePair("task[due]", c.getString(4)));
+			paras.add(new BasicNameValuePair("task[content]", c.getString(3)));
+			new get_data(Http_Mode.PUT, paras).execute(Server_url + "/lists/"
+					+ fromJson[0].list_id + "/tasks/" + c.getInt(0) + ".json");
+			c.moveToNext();
 		}
 
+		// Delete
+		select = "Select id from tasks where sync_state='" + sync_state.DELETE
+				+ "' and list_id='" + fromJson[0].list_id + "';";
+		c = db.rawQuery(select, null);
+		c.moveToFirst();
+		String delete = "Delete from tasks where sync_state='"
+				+ sync_state.DELETE + "' and list_id='" + fromJson[0].list_id
+				+ "';";
+		for (int i = 0; i < c.getCount(); i++) {
+			new get_data(Http_Mode.DELETE).execute(Server_url + "/lists/"
+					+ fromJson[0].list_id + "/tasks/" + c.getInt(0) + ".json");
+			c.moveToNext();
+		}
+		db.execSQL(delete);
+		db.execSQL(update);
+		show_tasks();
 	}
 
 	@Override

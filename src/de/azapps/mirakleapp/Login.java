@@ -273,6 +273,7 @@ public class Login extends Activity {
 				return downloadUrl(urls[0]);
 			} catch (IOException e) {
 				Log.e("URL", "Unable to retrieve web page. URL may be invalid.");
+				Log.e("URL", urls[0]);
 			} catch (URISyntaxException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
