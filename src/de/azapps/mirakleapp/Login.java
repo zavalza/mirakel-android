@@ -232,6 +232,7 @@ public class Login extends Activity {
 						Log.e("Sucess", "Login_sucess");
 						String update = "Update users Set remember_me='"
 								+ remember + "' where email='" + mEmail + "';";
+
 						db.execSQL(update);
 						start_main();
 					} else {
@@ -293,10 +294,25 @@ public class Login extends Activity {
 					remember = "TRUE";
 				else
 					remember = "FALSE";
-				String update = "Update users Set remember_me='" + remember
-						+ "',encrypted_password='" + mPassword
-						+ "' where email='" + mEmail + "';";
-				db.execSQL(update);
+				String select = "Select * from users where email='" + mEmail
+						+ "';";
+				Cursor c = db.rawQuery(select, null);
+				c.moveToFirst();
+				if (c.getCount() > 0) {
+					String update = "Update users Set remember_me='" + remember
+							+ "',encrypted_password='" + mPassword
+							+ "' where email='" + mEmail + "';";
+					db.execSQL(update);
+				} else {
+					String insert = "Insert into users(encrypted_password,email,remember_me) values '"
+							+ mPassword
+							+ "','"
+							+ mEmail
+							+ "','"
+							+ remember
+							+ "';";
+					db.execSQL(insert);
+				}
 				start_main();
 			} else {
 				Log.e("Login faild", "falsches PW");
