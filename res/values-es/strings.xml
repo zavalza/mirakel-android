@@ -40,6 +40,8 @@
   <string name="list_today">Tareas para hoy</string>
   <string name="list_week">Esta semana</string>
   <string name="list_overdue">Atrasado</string>
+  <string name="list_wishes">Quisiera hacer</string>
+  <string name="list_jobs">Podría hacer</string>
   <string name="menu_settings">Configuración</string>
   <string name="menu_move_task">Mover tarea</string>
   <string name="offical_server_url">https://mirakel.azapps.de</string>

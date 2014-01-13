@@ -100,6 +100,8 @@
     <string name="list_today">Tasks today</string>
     <string name="list_week">This week</string>
     <string name="list_overdue">Overdue</string>
+    <string name="list_wishes">Want to do</string>
+    <string name="list_jobs">Can do</string>
     <string name="list_delete_content">Are you sure you want to delete %s?</string>
 
     <string-array name="list_actions_items">

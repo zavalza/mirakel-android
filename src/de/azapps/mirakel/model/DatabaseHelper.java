@@ -80,10 +80,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 		createTasksTableString(db);
 		db.execSQL("INSERT INTO " + ListMirakel.TABLE + " (" + NAME + ","
 				+ ListMirakel.LFT + "," + ListMirakel.RGT + ") VALUES ('"
-				+ context.getString(R.string.inbox) + "',0,1)");
+				+ context.getString(R.string.inbox) + "',4,5)");
 		db.execSQL("INSERT INTO " + Task.TABLE + " (" + Task.LIST_ID + ","
 				+ DatabaseHelper.NAME + ") VALUES (1,'"
 				+ context.getString(R.string.first_task) + "')");
+        db.execSQL("INSERT INTO " + ListMirakel.TABLE + " (" + NAME + ","
+                + ListMirakel.LFT + "," + ListMirakel.RGT + ") VALUES ('"
+                + context.getString(R.string.list_wishes) + "',2,3)");
+        db.execSQL("INSERT INTO " + ListMirakel.TABLE + " (" + NAME + ","
+                + ListMirakel.LFT + "," + ListMirakel.RGT + ") VALUES ('"
+                + context.getString(R.string.list_jobs) + "',0,1)");
 		createSpecialListsTable(db);
 		onUpgrade(db, 7, DATABASE_VERSION);
 	}
@@ -440,11 +446,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 				+ "=0 and date(" + Task.DUE
 				+ ")<=date(\"now\",\"+7 day\",\"localtime\")')");
 		db.execSQL("INSERT INTO " + SpecialList.TABLE + " (" + NAME + ","
-				+ SpecialList.ACTIVE + "," + SpecialList.WHERE_QUERY
-				+ ") VALUES (" + "'" + context.getString(R.string.list_overdue)
-				+ "',1,'" + Task.DUE + " not null and " + Task.DONE
-				+ "=0 and date(" + Task.DUE
-				+ ")<=date(\"now\",\"-1 day\",\"localtime\")')");
+                + SpecialList.ACTIVE + "," + SpecialList.WHERE_QUERY
+                + ") VALUES (" + "'" + context.getString(R.string.list_overdue)
+                + "',1,'" + Task.DUE + " not null and " + Task.DONE
+                + "=0 and date(" + Task.DUE
+                + ")<=date(\"now\",\"-1 day\",\"localtime\")')");
 	}
 
 }

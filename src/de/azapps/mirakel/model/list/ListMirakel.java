@@ -461,7 +461,7 @@ public class ListMirakel extends ListBase {
 	 * @return List of Lists
 	 */
 	public static List<ListMirakel> all() {
-		return all(true);
+		return all(false);
 	}
 
 	public static List<ListMirakel> all(boolean withSpecial) {
