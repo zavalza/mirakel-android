@@ -314,4 +314,10 @@ Device: %3$s\n]]>
     <string name="audio_record_file">Audio record</string>
     <string name="image_file">Image</string>
 
+    <!--Login-->
+    <string name="login_text">Ingresar</string>
+    <string name="signup_button">Registrarme</string>
+    <string name="next_button">Continuar</string>
+    <string name="facebook_button">Botón de Facebook</string>
+
 </resources>

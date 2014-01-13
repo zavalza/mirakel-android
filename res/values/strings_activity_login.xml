@@ -1,0 +1,19 @@
+<resources>
+
+    <string name="title_activity_login">Tak</string>
+
+    <!-- Strings related to login -->
+    <string name="prompt_email">Correo Electrónico</string>
+    <string name="prompt_password">Contraseña</string>
+    <string name="prompt_name">Nombre Apellido</string>
+    <string name="prompt_phone">Celular (Opcional)</string>
+    <string name="action_sign_in_register">Registrarme</string>
+    <string name="action_sign_in_short">Ingresa</string>
+    <string name="action_forgot_password">Olvidé mi contraseña</string>
+    <string name="login_progress_signing_in">Ingresando…</string>
+    <string name="error_invalid_email">Este correo electrónico es inválido</string>
+    <string name="error_invalid_password">Contreseña demasiado corta</string>
+    <string name="error_incorrect_password">Contraseña incorrecta</string>
+    <string name="error_field_required">Este campo es requerido</string>
+
+</resources>

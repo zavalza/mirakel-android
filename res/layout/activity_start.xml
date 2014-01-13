@@ -1,0 +1,116 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/inicio"
+    tools:context=".StartActivity" >
+
+     <!-- Login progress -->
+
+    <LinearLayout
+        android:id="@+id/login_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:visibility="gone" >
+
+        <ProgressBar
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/login_status_message"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:fontFamily="sans-serif-light"
+            android:text="@string/login_progress_signing_in"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+    </LinearLayout>
+
+    <!-- Login form -->
+    
+<!--     <ImageView -->
+<!--         android:id="@+id/start_image" -->
+<!--         android:layout_width="wrap_content" -->
+<!--         android:layout_height="wrap_content" -->
+<!--         android:gravity="center" -->
+<!--         android:keepScreenOn="true" -->
+<!--         android:contentDescription="@string/start_image" -->
+<!--         android:src="@drawable/inicio" /> -->
+
+    <!--
+         This FrameLayout insets its children based on system windows using
+         android:fitsSystemWindows.
+    -->
+	<ScrollView
+        android:id="@+id/login_form"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" >
+        
+    <LinearLayout
+        android:id="@+id/login"
+        android:layout_width="257dp"
+        android:layout_height="208dp"
+        android:layout_gravity="center"
+        android:layout_marginTop="50dp"
+        android:orientation="vertical"
+        style="@style/LoginFormContainer">
+		
+       	 <EditText
+                android:id="@+id/email"
+                android:background="@color/white"
+                android:textColor="@color/black"
+                android:textColorHint="@color/Grey"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/prompt_email"
+                android:inputType="textEmailAddress"
+                android:maxLines="1"
+                android:singleLine="true" />
+
+         <EditText
+                android:id="@+id/password"
+                android:background="@color/white"
+                android:textColor="@color/black"
+                android:textColorHint="@color/Grey"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/prompt_password"
+                android:imeActionId="@+id/login"
+                android:imeActionLabel="@string/action_sign_in_short"
+                android:imeOptions="actionUnspecified"
+                android:inputType="textPassword"
+                android:maxLines="1"
+                android:singleLine="true" />
+
+         <Button
+             android:id="@+id/login_button"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:layout_marginTop="10dp"
+             android:text="@string/login_text" />
+
+         <ImageView
+             android:id="@+id/login_with_facebook"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:contentDescription="@string/facebook_button"
+             android:src="@drawable/facebook_login" />
+
+         <Button
+             android:id="@+id/signup_button"
+             android:background="@color/white"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:text="@string/signup_button"
+             android:textColor="@color/black"/>
+
+    </LinearLayout>
+    </ScrollView>
+
+</FrameLayout>
