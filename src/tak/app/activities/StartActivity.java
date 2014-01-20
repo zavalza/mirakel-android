@@ -1,6 +1,7 @@
 package tak.app.activities;
 
 import tak.app.util.SystemUiHider;
+import android.app.ProgressDialog;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
@@ -16,6 +17,17 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.TextView;
 import de.azapps.mirakelandroid.R;
+import com.parse.Parse;
+import com.parse.ParseACL;
+import com.parse.ParseUser;
+import com.parse.ParseFacebookUtils;
+import com.parse.LogInCallback;
+import com.parse.ParseException;
+import java.util.List;
+import java.util.Arrays;
+import android.util.Log;
+import android.app.Application;
+
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -52,10 +64,25 @@ public class StartActivity extends Activity {
 		private View mLoginFormView;
 		private View mLoginStatusView;
 		private TextView mLoginStatusMessageView;
+        private ProgressDialog progressDialog = null;
+
+    //Debug
+    private static final String LOGTAG = "LogsAndroid";
 		
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
+        //Parse
+        Parse.initialize(this,"B2AsSpbJ98QFl0GJl5LP1oOEe1sZl8RDoNwVyQkl", "xUeTcl5DPzlH5ANetkp7XZFVdJgLLAAWRwofLkuG");
+
+        ParseUser.enableAutomaticUser();
+        ParseACL defaultACL = new ParseACL();
+        // Optionally enable public read access.
+        // defaultACL.setPublicReadAccess(true);
+        ParseACL.setDefaultACL(defaultACL, true);
+
+        ParseFacebookUtils.initialize("161471184060754");
 
 		setContentView(R.layout.activity_start);
 
@@ -97,9 +124,22 @@ public class StartActivity extends Activity {
 						goToSignUp();
 					}
 				});
+
+        findViewById(R.id.login_with_facebook).setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        loginParseFacebook();
+                    }
+                });
 	}
-	
-	
+
+    /*@Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        ParseFacebookUtils.finishAuthentication(requestCode, resultCode, data);
+    }*/
+
 	/**
 	 * Attempts to sign in or register the account specified by the login form.
 	 * If there are form errors (invalid email, missing fields, etc.), the
@@ -156,7 +196,32 @@ public class StartActivity extends Activity {
 			mAuthTask.execute((Void) null);
 		}
 	}
-	
+
+    public void loginParseFacebook()
+    {
+        StartActivity.this.progressDialog = ProgressDialog.show(
+                StartActivity.this, "", "Logging in...", true);
+        List<String> permissions = Arrays.asList("basic_info", "user_about_me",
+                "user_relationships", "user_birthday", "user_location");
+        ParseFacebookUtils.logIn(permissions, this, new LogInCallback() {
+            @Override
+            public void done(ParseUser user, ParseException err) {
+                StartActivity.this.progressDialog.dismiss();
+                if (user == null) {
+                    Log.d(LOGTAG,
+                            "Uh oh. The user cancelled the Facebook login.");
+                } else if (user.isNew()) {
+                    Log.d(LOGTAG,
+                            "User signed up and logged in through Facebook!");
+                    //showUserDetailsActivity();
+                } else {
+                    Log.d(LOGTAG,
+                            "User logged in through Facebook!");
+                    //showUserDetailsActivity();
+                }
+            }
+        });
+    }
 	public void goToSignUp(){
 		try
 		{
