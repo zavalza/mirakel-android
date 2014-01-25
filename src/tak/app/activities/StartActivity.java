@@ -18,6 +18,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import de.azapps.mirakelandroid.R;
 import com.parse.Parse;
+import com.parse.ParseAnalytics;
 import com.parse.ParseACL;
 import com.parse.ParseUser;
 import com.parse.ParseFacebookUtils;
@@ -68,13 +69,15 @@ public class StartActivity extends Activity {
 
     //Debug
     private static final String LOGTAG = "LogsAndroid";
+    private static final String appId="B2AsSpbJ98QFl0GJl5LP1oOEe1sZl8RDoNwVyQkl";
+    private static  final String clientKey="xUeTcl5DPzlH5ANetkp7XZFVdJgLLAAWRwofLkuG";
 		
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
         //Parse
-        Parse.initialize(this,"B2AsSpbJ98QFl0GJl5LP1oOEe1sZl8RDoNwVyQkl", "xUeTcl5DPzlH5ANetkp7XZFVdJgLLAAWRwofLkuG");
+        Parse.initialize(this, "B2AsSpbJ98QFl0GJl5LP1oOEe1sZl8RDoNwVyQkl", "xUeTcl5DPzlH5ANetkp7XZFVdJgLLAAWRwofLkuG");
 
         ParseUser.enableAutomaticUser();
         ParseACL defaultACL = new ParseACL();
@@ -134,11 +137,11 @@ public class StartActivity extends Activity {
                 });
 	}
 
-    /*@Override
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         ParseFacebookUtils.finishAuthentication(requestCode, resultCode, data);
-    }*/
+    }
 
 	/**
 	 * Attempts to sign in or register the account specified by the login form.
@@ -213,10 +216,12 @@ public class StartActivity extends Activity {
                 } else if (user.isNew()) {
                     Log.d(LOGTAG,
                             "User signed up and logged in through Facebook!");
+                    goToSignUp();
                     //showUserDetailsActivity();
                 } else {
                     Log.d(LOGTAG,
                             "User logged in through Facebook!");
+                    goToSignUp();
                     //showUserDetailsActivity();
                 }
             }

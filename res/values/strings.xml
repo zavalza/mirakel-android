@@ -313,6 +313,8 @@ Device: %3$s\n]]>
     <string name="save_label">Done</string>
     <string name="audio_record_file">Audio record</string>
     <string name="image_file">Image</string>
+    <string name="appId">B2AsSpbJ98QFl0GJl5LP1oOEe1sZl8RDoNwVyQkl</string>
+    <string name="clientKey">xUeTcl5DPzlH5ANetkp7XZFVdJgLLAAWRwofLkuG</string>
 
     <!--Login-->
     <string name="login_text">Ingresar</string>
