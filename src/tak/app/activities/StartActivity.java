@@ -27,6 +27,7 @@ import com.parse.ParseException;
 import java.util.List;
 import java.util.Arrays;
 import android.util.Log;
+import de.azapps.mirakel.main_activity.MainActivity;
 import android.app.Application;
 
 
@@ -216,27 +217,37 @@ public class StartActivity extends Activity {
                 } else if (user.isNew()) {
                     Log.d(LOGTAG,
                             "User signed up and logged in through Facebook!");
-                    goToSignUp();
+                    goToMainActivity();
                     //showUserDetailsActivity();
                 } else {
                     Log.d(LOGTAG,
                             "User logged in through Facebook!");
-                    goToSignUp();
+                    goToMainActivity();
                     //showUserDetailsActivity();
                 }
             }
         });
     }
 	public void goToSignUp(){
-		try
-		{
-		Intent intent = new Intent(StartActivity.this, SignUpActivity.class);
-	    startActivity(intent);
-		}
-		catch (Exception e){
+        try
+        {
+            Intent intent = new Intent(StartActivity.this, SignUpActivity.class);
+            startActivity(intent);
+        }
+        catch (Exception e){
 
-		}
-	}
+        }
+    }
+    public void goToMainActivity(){
+        try
+        {
+            Intent intent = new Intent(StartActivity.this, MainActivity.class);
+            startActivity(intent);
+        }
+        catch (Exception e){
+
+        }
+    }
 	
 	/**
 	 * Shows the progress UI and hides the login form.

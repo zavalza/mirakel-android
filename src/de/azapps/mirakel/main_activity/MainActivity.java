@@ -30,6 +30,8 @@ import android.app.AlertDialog;
 import android.app.SearchManager;
 import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -707,7 +709,7 @@ public class MainActivity extends ActionBarActivity implements ViewPager.OnPageC
 		}
 
 	}
-
+    //POSIBLE OPCION DE INICIO (ELIMINAR COMENTARIO)
 	private void addTaskFromSharing(ListMirakel list) {
 		if (newTaskSubject == null) return;
 		Task task = Semantic.createTask(newTaskSubject, list, true, this);
@@ -1354,4 +1356,12 @@ public class MainActivity extends ActionBarActivity implements ViewPager.OnPageC
 	public int getCurrentPosition() {
 		return currentPosition;
 	}
+
+
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    }
 }
