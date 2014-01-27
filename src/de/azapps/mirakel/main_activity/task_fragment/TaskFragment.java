@@ -37,6 +37,7 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
 import android.widget.Toast;
+
 import de.azapps.mirakel.Mirakel.NoSuchListException;
 import de.azapps.mirakel.helper.Helpers;
 import de.azapps.mirakel.helper.Helpers.ExecInterfaceWithTask;
@@ -47,6 +48,7 @@ import de.azapps.mirakel.main_activity.MainActivity;
 import de.azapps.mirakel.main_activity.task_fragment.TaskFragmentAdapter.TYPE;
 import de.azapps.mirakel.model.file.FileMirakel;
 import de.azapps.mirakel.model.task.Task;
+import de.azapps.mirakel.sync.SyncAdapter.SYNC_STATE;
 import de.azapps.mirakelandroid.R;
 import de.azapps.tools.FileUtils;
 

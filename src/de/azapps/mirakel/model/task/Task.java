@@ -60,6 +60,14 @@ import de.azapps.mirakel.sync.SyncAdapter;
 import de.azapps.mirakel.sync.SyncAdapter.SYNC_STATE;
 import de.azapps.mirakelandroid.R;
 
+import com.parse.FindCallback;
+import com.parse.GetCallback;
+import com.parse.Parse;
+import com.parse.ParseACL;
+import com.parse.ParseObject;
+import com.parse.ParseUser;
+import com.parse.ParseQuery;
+
 public class Task extends TaskBase {
 
 	public static final String	TABLE			= "tasks";
@@ -87,6 +95,33 @@ public class Task extends TaskBase {
 	 */
 	public void save() throws NoSuchListException {
 		save(true);
+        Log.d(TAG, "Saving in Parse");
+        ParseUser.getCurrentUser();
+/*        ParseQuery<ParseObject> query = ParseQuery.getQuery("Task");
+        query.whereEqualTo("name", getName());
+        query.getFirstInBackground( new GetCallback<ParseObject>(){
+            public void done(ParseObject taskOfParse, ParseException e) {
+                if (e == null) {
+                    // Now let's update it with some new data. In this case, only cheatMode and score
+                    // will get sent to the Parse Cloud. playerName hasn't changed.
+                    taskOfParse.put("score", 1338);
+                    taskOfParse.put("cheatMode", true);
+                    taskOfParse.saveInBackground();
+                }
+            }
+        });*/
+        ParseObject taskInParse = new ParseObject("Task");
+        taskInParse.put("name", getName());
+        taskInParse.put("List", getList().getName());
+        taskInParse.put("content",getContent());
+        taskInParse.put("done", isDone());
+        taskInParse.put("priority", getPriority());
+        if(getReminder() != null)
+            taskInParse.put("reminder",getReminder().getTime());
+        if(getDue() != null)
+            taskInParse.put("dueDate", getDue().getTime());
+        taskInParse.saveEventually();
+        setSyncState(SYNC_STATE.IS_SYNCED);
 	}
 
 	/**
@@ -127,7 +162,6 @@ public class Task extends TaskBase {
 		if (isEdited(REMINDER) || isEdited(RECURRING_REMINDER)) {
 			ReminderAlarm.updateAlarms(context);
 		}
-        if
 		clearEdited();
 	}
 
@@ -462,6 +496,21 @@ public class Task extends TaskBase {
 		Task newTask = cursorToTask(cursor);
 		cursor.close();
 		UndoHistory.logCreate(newTask, context);
+        Log.d(TAG, "Creating in Parse");
+        ParseUser.getCurrentUser();
+        ParseObject taskInParse = new ParseObject("Task");
+        taskInParse.put("name", getName());
+        taskInParse.put("List", getList().getName());
+        taskInParse.put("content",getContent());
+        taskInParse.put("done", isDone());
+        taskInParse.put("priority", getPriority());
+        if(getReminder() != null)
+            taskInParse.put("reminder",getReminder().getTime());
+        if(getDue() != null)
+            taskInParse.put("dueDate", getDue().getTime());
+        taskInParse.saveEventually();
+        setSyncState(SYNC_STATE.ADD);
+
 		return newTask;
 	}
 

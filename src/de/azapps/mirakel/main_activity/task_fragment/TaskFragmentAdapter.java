@@ -90,6 +90,7 @@ import de.azapps.mirakel.model.file.FileMirakel;
 import de.azapps.mirakel.model.recurring.Recurring;
 import de.azapps.mirakel.model.task.Task;
 import de.azapps.mirakel.reminders.ReminderAlarm;
+import de.azapps.mirakel.sync.SyncAdapter.SYNC_STATE;
 import de.azapps.mirakelandroid.R;
 
 public class TaskFragmentAdapter extends MirakelArrayAdapter<Pair<Integer, Integer>> {// TYPE,INDEX

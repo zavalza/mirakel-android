@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Stack;
 import java.util.Vector;
 
+import de.azapps.mirakel.sync.SyncAdapter.SYNC_STATE;
 import sheetrock.panda.changelog.ChangeLog;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
@@ -55,6 +56,12 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
+
+import com.parse.Parse;
+import com.parse.ParseACL;
+import com.parse.ParseObject;
+import com.parse.ParseUser;
+
 import de.azapps.mirakel.Mirakel;
 import de.azapps.mirakel.Mirakel.NoSuchListException;
 import de.azapps.mirakel.adapter.PagerAdapter;
@@ -144,6 +151,15 @@ public class MainActivity extends ActionBarActivity implements ViewPager.OnPageC
 		if (darkTheme) setTheme(R.style.AppBaseThemeDARK);
 		super.onCreate(savedInstanceState);
 
+
+        //Parse
+        Parse.initialize(this, "B2AsSpbJ98QFl0GJl5LP1oOEe1sZl8RDoNwVyQkl", "xUeTcl5DPzlH5ANetkp7XZFVdJgLLAAWRwofLkuG");
+        ParseUser.getCurrentUser();
+        ParseObject gameScore = new ParseObject("GameScore");
+        gameScore.put("score", 1337);
+        gameScore.put("playerName", "Sean Plott");
+        gameScore.put("cheatMode", false);
+        gameScore.saveInBackground();
 		// Set Alarms
 
 		new Thread(new Runnable() {
